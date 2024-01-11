@@ -1,8 +1,8 @@
-# Install script for directory: E:/Datos/Proyectos/RTOS/Gavimetric-Fuel-Consumption-Meter/Gavimetric_Meter/main
+# Install script for directory: E:/Datos/Proyectos/RTOS/Gavimetric-Fuel-Consumption-Meter/gavimetric_meter/main
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)
-  set(CMAKE_INSTALL_PREFIX "C:/Program Files (x86)/Gavimetric_Meter")
+  set(CMAKE_INSTALL_PREFIX "C:/Program Files (x86)/gavimetric_meter")
 endif()
 string(REGEX REPLACE "/$" "" CMAKE_INSTALL_PREFIX "${CMAKE_INSTALL_PREFIX}")
 
