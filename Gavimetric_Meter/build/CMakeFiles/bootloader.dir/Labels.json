@@ -1,0 +1,43 @@
+{
+	"sources" : 
+	[
+		{
+			"file" : "E:/Datos/Proyectos/RTOS/Gavimetric-Fuel-Consumption-Meter/Gavimetric_Meter/build/CMakeFiles/bootloader"
+		},
+		{
+			"file" : "E:/Datos/Proyectos/RTOS/Gavimetric-Fuel-Consumption-Meter/Gavimetric_Meter/build/CMakeFiles/bootloader.rule"
+		},
+		{
+			"file" : "E:/Datos/Proyectos/RTOS/Gavimetric-Fuel-Consumption-Meter/Gavimetric_Meter/build/CMakeFiles/bootloader-complete.rule"
+		},
+		{
+			"file" : "E:/Datos/Proyectos/RTOS/Gavimetric-Fuel-Consumption-Meter/Gavimetric_Meter/build/bootloader-prefix/src/bootloader-stamp/bootloader-build.rule"
+		},
+		{
+			"file" : "E:/Datos/Proyectos/RTOS/Gavimetric-Fuel-Consumption-Meter/Gavimetric_Meter/build/bootloader-prefix/src/bootloader-stamp/bootloader-configure.rule"
+		},
+		{
+			"file" : "E:/Datos/Proyectos/RTOS/Gavimetric-Fuel-Consumption-Meter/Gavimetric_Meter/build/bootloader-prefix/src/bootloader-stamp/bootloader-download.rule"
+		},
+		{
+			"file" : "E:/Datos/Proyectos/RTOS/Gavimetric-Fuel-Consumption-Meter/Gavimetric_Meter/build/bootloader-prefix/src/bootloader-stamp/bootloader-install.rule"
+		},
+		{
+			"file" : "E:/Datos/Proyectos/RTOS/Gavimetric-Fuel-Consumption-Meter/Gavimetric_Meter/build/bootloader-prefix/src/bootloader-stamp/bootloader-mkdir.rule"
+		},
+		{
+			"file" : "E:/Datos/Proyectos/RTOS/Gavimetric-Fuel-Consumption-Meter/Gavimetric_Meter/build/bootloader-prefix/src/bootloader-stamp/bootloader-patch.rule"
+		},
+		{
+			"file" : "E:/Datos/Proyectos/RTOS/Gavimetric-Fuel-Consumption-Meter/Gavimetric_Meter/build/bootloader-prefix/src/bootloader-stamp/bootloader-update.rule"
+		}
+	],
+	"target" : 
+	{
+		"labels" : 
+		[
+			"bootloader"
+		],
+		"name" : "bootloader"
+	}
+}
