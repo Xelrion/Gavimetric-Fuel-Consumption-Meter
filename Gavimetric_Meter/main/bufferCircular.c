@@ -154,3 +154,24 @@ bool bufferCircularVacio( bufferCircular_t* pBuffer )
 
     return bufferVacio;
 }
+
+/* Comprueba cuántos elementos contiene actualmente el buffer */
+bool bufferCircularNumElementos( bufferCircular_t* pBuffer, int* pValor )
+{
+    int numElementos = 0;
+
+    if (xSemaphoreTake(pBuffer->mutex, (TickType_t) 10) == pdTRUE)
+    {
+        numElementos = (pBuffer->numElementos);
+        xSemaphoreGive(pBuffer->mutex);
+        pBuffer->err = BUFFER_OK;
+        xSemaphoreGive(pBuffer->mutex);
+    }
+    else
+    {
+        ESP_LOGE(pBuffer->tag, "Fallo al intentar tomar mutex");
+        pBuffer->err = BUFFER_ERR_MUTEX;
+    }
+
+    return (pBuffer->err == BUFFER_OK);
+}

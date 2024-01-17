@@ -57,4 +57,7 @@ bool bufferCircularLleno( bufferCircular_t* pBuffer );
 /* Comprueba si está vacio */
 bool bufferCircularVacio( bufferCircular_t* pBuffer );
 
+/* Comprueba cuántos elementos contiene actualmente el buffer */
+bool bufferCircularNumElementos( bufferCircular_t* pBuffer, int* pValor );
+
 #endif
