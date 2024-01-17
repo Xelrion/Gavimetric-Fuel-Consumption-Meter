@@ -6,75 +6,64 @@
 #include <freertos/task.h>
 #include "esp_log.h"
 
+// Recursos y estructuras comunes
 #include "myTaskConfig.h"
 #include "bufferCircular.h"
+#include "fsm.h"
 
-#include "analogInput.h"
-#include "calculaMedias.h"
-#include "informe.h"
+// Módulo de control del depósito
+#include "controlDeposito.h"
+
+// Módulo de monitorización del depósito
+#include "medidasNivel.h"
 
 // Constantes para la planificación de cada tarea
 // Nombre, periodo, tamaño de stack y prioridad
 
-static const char* TSKLECTURA_TAG = "LecturaSensor";
-#define TSKLECTURA_PERIODO_MS 500
-#define TSKLECTURA_STACK_WD  2048
-#define TSKLECTURA_PRIORIDAD    7
+static const char* TSKMEDIDASNIV_TAG = "MedidasNivel";
+#define TSKMEDIDASNIV_PERIODO_MS 500
+#define TSKMEDIDASNIV_STACK_WD  2048
+#define TSKMEDIDASNIV_PRIORIDAD    6
 
-static const char* TSKMEDIA_TAG = "CalculoMedia";
-#define TSKMEDIA_PERIODO_MS 6000
-#define TSKMEDIA_STACK_WD  2048
-#define TSKMEDIA_PRIORIDAD    4
-
-static const char* TSKINFORME_TAG = "Informe";
-#define TSKINFORME_PERIODO_MS 60000
-#define TSKINFORME_STACK_WD  2048
-#define TSKINFORME_PRIORIDAD    2
+static const char* TSKCONTROLDEP_TAG = "ControlDeposito";
+#define TSKCONTROLDEP_PERIODO_MS 500
+#define TSKCONTROLDEP_STACK_WD  2048
+#define TSKCONTROLDEP_PRIORIDAD    7
 
 // Información de intercambio de cada tarea
-tareaLecturaInfo_t tskLectura_data;
-tareaMediaInfo_t   tskMedia_data;
-tareaInformeInfo_t tskInforme_data;
+tareaMedidasNivelInfo_t tskMedidasNivel_data;
+tareaControlDepositoInfo_t   tskControlDeposito_data;
 
 // Información necesaria para planificar cada tarea
-taskConfig_t tskLectura_config, tskMedia_config, tskInforme_config;
-taskInfo_t tskLectura_info, tskMedia_info, tskInforme_info;
+taskConfig_t tskMedidasNivel_config, tskControlDeposito_config;
+taskInfo_t tskMedidasNivel_info, tskControlDeposito_info;
 
-TaskHandle_t tskLectura, tskMedia, tskInforme;
+TaskHandle_t tskMedidasNivel, tskControlDeposito;
 
-bufferCircular_t lecturas;
-const char* tagLecturas = "Buffer_Lecturas";
-
-bufferCircular_t medias;
-const char* tagMedias = "Buffer_Medias";
+bufferCircular_t medidas;
+const char* tagMedidas = "Buffer_Medidas";
 
 // extern "C" void app_main(void)
 void app_main(void)
 {
     // Preparamos los buffers de intercambio de información
-    bufferCircularCrea(&lecturas, tagLecturas);
-    bufferCircularCrea(&medias, tagMedias);
+    bufferCircularCrea(&medidas, tagMedidas);
 
     // Prepara la estructura con la información que intercambia cada taera
-    tareaLecturaSet(&tskLectura_data, &lecturas);
-    tareaMediaSet(&tskMedia_data, &lecturas, &medias);
-    tareaInformeSet(&tskInforme_data, &medias);
+    tareaLecturaSet(&tskMedidasNivel_data, &medidas);
 
     // Completamos las estructuras de paso de información
     // Configuración de cada tarea
-    taskConfigSet(&tskLectura_config, TSKLECTURA_PERIODO_MS, TSKLECTURA_TAG);
-    taskConfigSet(&tskMedia_config,   TSKMEDIA_PERIODO_MS,   TSKMEDIA_TAG);
-    taskConfigSet(&tskInforme_config, TSKINFORME_PERIODO_MS, TSKINFORME_TAG);
+    taskConfigSet(&tskMedidasNivel_config, TSKMEDIDASNIV_PERIODO_MS, TSKMEDIDASNIV_TAG);
+    taskConfigSet(&tskControlDeposito_config,   TSKCONTROLDEP_PERIODO_MS,   TSKCONTROLDEP_TAG);
 
     // Información completa de cada tarea
-    taskInfoSet(&tskLectura_info, &tskLectura_config, (void*)&tskLectura_data);
-    taskInfoSet(&tskMedia_info,   &tskMedia_config,   (void*)&tskMedia_data);
-    taskInfoSet(&tskInforme_info, &tskInforme_config, (void*)&tskInforme_data);
+    taskInfoSet(&tskMedidasNivel_info, &tskMedidasNivel_config, (void*)&tskMedidasNivel_data);
+    taskInfoSet(&tskControlDeposito_info,   &tskControlDeposito_config,   (void*)&tskControlDeposito_data);
 
     // Planifica cada tarea
-    xTaskCreate(tareaLectura, TSKLECTURA_TAG, TSKLECTURA_STACK_WD, &tskLectura_info, TSKLECTURA_PRIORIDAD,  &tskLectura); tskLectura_config.activa = 1; // numTsk++;
-    xTaskCreate(tareaMedia,   TSKMEDIA_TAG,   TSKMEDIA_STACK_WD,   &tskMedia_info,   TSKMEDIA_PRIORIDAD,    &tskMedia);   tskMedia_config.activa = 1;   // numTsk++;
-    xTaskCreate(tareaInforme, TSKINFORME_TAG, TSKINFORME_STACK_WD, &tskInforme_info, TSKINFORME_PRIORIDAD,  &tskInforme); tskInforme_config.activa = 1; // numTsk++;
+    xTaskCreate(tareaMedidasNivel, TSKMEDIDASNIV_TAG, TSKMEDIDASNIV_STACK_WD, &tskMedidasNivel_info, TSKMEDIDASNIV_PRIORIDAD,  &tskMedidasNivel); tskMedidasNivel_config.activa = 1; // numTsk++;
+    xTaskCreate(tareaControlDeposito,   TSKCONTROLDEP_TAG,   TSKCONTROLDEP_STACK_WD,   &tskMedidasNivel_info,   TSKMEDIDASNIV_PRIORIDAD,    &tskMedidasNivel);   tskControlDeposito_config.activa = 1;   // numTsk++;
 
     vTaskDelay(10);
 

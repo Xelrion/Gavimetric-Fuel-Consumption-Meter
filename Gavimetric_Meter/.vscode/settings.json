@@ -13,5 +13,10 @@
     ],
     "idf.portWin": "COM6",
     "idf.pythonBinPathWin": "C:\\Users\\david\\.espressif\\python_env\\idf5.1_py3.11_env\\Scripts\\python.exe",
-    "idf.toolsPathWin": "C:\\Users\\david\\.espressif"
+    "idf.toolsPathWin": "C:\\Users\\david\\.espressif",
+    "idf.flashType": "UART",
+    "files.associations": {
+        "informe.h": "c",
+        "buffercircular.h": "c"
+    }
 }
