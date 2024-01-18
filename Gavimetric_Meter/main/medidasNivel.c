@@ -11,6 +11,7 @@
 #include "esp_log.h"
 
 #include "bufferCircular.h"
+#include "estadoSistema.h"
 #include "myTaskConfig.h"
 #include "medidasNivel.h"
 
@@ -57,9 +58,10 @@ void timer_next(int* timer)
  ***********************************************************************************************************/
 
 /* Configuración de la tarea de toma de medidas */
-void tareaMedidasNivelSet(tareaMedidasNivelInfo_t* pTaskInfo, bufferCircular_t* pMedidas)
+void tareaMedidasNivelSet(tareaMedidasNivelInfo_t* pTaskInfo, bufferCircular_t* pMedidas, estadoSistema_t* pEstadoSist)
 {
     pTaskInfo->pMedidas   = pMedidas;
+    pTaskInfo->pEstadoSist = pEstadoSist;
 }
 
 /* Punto de entrada de la tarea de toma de medidas */
@@ -67,9 +69,10 @@ void tareaLectura(void* pParametros)
 {
     /* Estructuras para intercambio de información */
     /* Entre la tarea y la aplicación principal */
-    taskConfig_t*       pConfig = ((taskInfo_t *)pParametros)->pConfig;
-    void*                 pData = ((taskInfo_t *)pParametros)->pData;
-    bufferCircular_t*  pMedidas = ((tareaMedidasNivelInfo_t*)pData)->pMedidas;
+    taskConfig_t*       pConfig  = ((taskInfo_t *)pParametros)->pConfig;
+    void*                 pData  = ((taskInfo_t *)pParametros)->pData;
+    bufferCircular_t*  pMedidas  = ((tareaMedidasNivelInfo_t*)pData)->pMedidas;
+    estadoSistema_t* pEstadoSist = ((tareaMedidasNivelInfo_t*)pData)->pEstadoSist;
 
     ESP_LOGI(pConfig->tag, "Periodo de planificación: %lu ms", pConfig->periodo);
     ESP_LOGI(pConfig->tag, "Número inicial de activaciones: %lu", pConfig->numActivaciones);
@@ -80,6 +83,12 @@ void tareaLectura(void* pParametros)
 
     /* Parámetros de funcionamiento configurables */
     int periodo_medidas = pConfig->periodo;  // periodo de toma de medidas en ms, inicialmente coincide con el periodo de la tarea
+    int periodo_espera_estabilizacion = 5;  // periodo de espera de estabilización en s
+
+    /* Estado del sistema */
+    estadoSistemaComando_t comando = DESACTIVADA;
+    estadoSistemaEspera_t espera_estabilizacion = DESACTIVADA;
+    bool peticion_medidas = 0;
 
     /* Bucle de toma de medidas */
     bool continuar = true;
@@ -106,18 +115,50 @@ void tareaLectura(void* pParametros)
         // Si supera el valor máximo, se notifica al recurso de avisos de control del depósito
         // Si supera el valor mínimo, lo mismo
 
-        // Nota: Comprueba el estado de la máq. de estados de cálculo de consumo
-        // Si está en "desactivado" o "espera", limpia el buffer de medidas y no toma medida
-        // Luego, comprueba si el timer de periodo de medidas ha llegado a 0
-        // Finalmente, comprueba si el timer de espera de estabilización ha llegado a 0
-        // Si se cumplen todas condiciones, reinicia el timer e incluye la medida en el buffer
-        /* Incluye la medida tomada en el buffer de lecturas */
-        if (!bufferCircularMete(pMedidas, medida))
+        /* Si la espera de estabilización está activa y el timer expira, se desactiva */
+        estadoSistemaLeerEspera(pEstadoSist, &espera_estabilizacion);
+        if (espera_estabilizacion == EN_CURSO & timer_expired(timer_espera_estabilizacion))
         {
-            continuar = false;
-        };
+            espera_estabilizacion = DESACTIVADA;
+            estadoSistemaEscribirEspera(pEstadoSist, espera_estabilizacion);
+        }
+        /* Si el sistema de control del depósito acaba de iniciar la espera de estabilización, se inicia el timer */
+        if (espera_estabilizacion == INICIADA)
+        {
+            timer_start(timer_espera_estabilizacion, periodo_espera_estabilizacion*1000, pConfig->periodo);
+            espera_estabilizacion = DESACTIVADA;
+            estadoSistemaEscribirEspera(pEstadoSist, EN_CURSO);
+        }
+
+        /* Si se cumplen las condiciones para enviar medidas de consumo, en modo remoto o manual, la medida se envía al buffer */
+        comando = estadoSistemaLeerComando(pEstadoSist, &comando);
+        peticion_medidas = estadoSistemaLeerPeticion(pEstadoSist, &peticion_medidas);
+
+        /* Nota: añadir condición AND para la parada de emergencia desactivada*/
+        /* Condiciones para realizar la medida: */
+        // La petición manual de medidas está activa (comandos 1 y 2) O la petición automática está activa (comando 3) y el sistema remoto pide medidas
+        // La espera de estabilización está desactivada
+        // La parada de emergencia está desactivada
+        // El timer de periodo de toma de medidas <= 0
+        if ( ((comando == 1 | comando == 2) | (comando == 3 & peticion_medidas == 1)) & espera_estabilizacion == 0 & timer_expired(timer_periodo_medidas))
+        {
+            if (!bufferCircularMete(pMedidas, medida))
+            {
+                continuar = false;
+            };
+        }
+        /* Si no se pueden tomar medidas actualmente, se limpia el buffer para que el cálculo de medias no reciba medidas erróneas*/
+        else
+        {
+            if (!bufferCircularLimpia(pMedidas))
+            {
+                continuar = false;
+            };
+        }
 
         /* Actualiza el timer de periodo de medidas*/
         timer_next(&timer_periodo_medidas);
+        /* Actualiza el timer de espera de estabilización */
+        timer_next(&timer_espera_estabilizacion);
     }
 }

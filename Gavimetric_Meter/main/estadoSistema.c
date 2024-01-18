@@ -109,3 +109,45 @@ bool estadoSistemaLeerPeticion( estadoSistema_t* pEstadoSist, bool* pPeticion )
 
     return (pEstadoSist->err == EST_SIST_OK);
 }
+
+/* Modifica el estado del comando */
+bool estadoSistemaEscribirComando( estadoSistema_t* pEstadoSist, estadoSistemaComando_t* pComando )
+{
+    if (xSemaphoreTake(pEstadoSist->mutex, (TickType_t) 10) == pdTRUE)
+    {
+        pEstadoSist->comando = pComando;
+        ESP_LOGD(pEstadoSist->tag, "Nuevo comando del sistema: %d", (pEstadoSist->comando));
+        pEstadoSist->err = EST_SIST_OK;
+        xSemaphoreGive(pEstadoSist->mutex);
+    }
+    else
+    {
+        ESP_LOGE(pEstadoSist->tag, "Fallo al intentar tomar mutex");
+        ESP_LOGE(pEstadoSist->tag, "para modificar el comando actual: %d", (pEstadoSist->comando));
+
+        pEstadoSist->err = EST_SIST_ERR_MUTEX;
+    }
+
+    return (pEstadoSist->err == EST_SIST_OK);
+}
+
+/* Modifica el estado de la espera de estabilización */
+bool estadoSistemaEscribirEspera( estadoSistema_t* pEstadoSist, estadoSistemaEspera_t* pEspera )
+{
+    if (xSemaphoreTake(pEstadoSist->mutex, (TickType_t) 10) == pdTRUE)
+    {
+        pEstadoSist->esperaEstabilizacion = pEspera;
+        ESP_LOGD(pEstadoSist->tag, "Espera de estabilización: %d", (pEstadoSist->esperaEstabilizacion));
+        pEstadoSist->err = EST_SIST_OK;
+        xSemaphoreGive(pEstadoSist->mutex);
+    }
+    else
+    {
+        ESP_LOGE(pEstadoSist->tag, "Fallo al intentar tomar mutex");
+        ESP_LOGE(pEstadoSist->tag, "para modificar el estado de la espera de estabilización: %d", (pEstadoSist->esperaEstabilizacion));
+
+        pEstadoSist->err = EST_SIST_ERR_MUTEX;
+    }
+
+    return (pEstadoSist->err == EST_SIST_OK);
+}

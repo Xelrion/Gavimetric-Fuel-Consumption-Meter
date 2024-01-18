@@ -1,7 +1,7 @@
 /* Manejo de una estructura de estado del sistema */
 
-#ifndef BUFFERCIRCULAR_H
-#define BUFFERCIRCULAR_H
+#ifndef ESTSIST_H
+#define ESTSIST_H
 
 #include <freertos/FreeRTOS.h>
 #include "freertos/semphr.h"
@@ -72,5 +72,11 @@ bool estadoSistemaLeerEspera( estadoSistema_t* pEstadoSist, estadoSistemaEspera_
 
 /* Lee el estado de la petición de medidas remotas */
 bool estadoSistemaLeerPeticion( estadoSistema_t* pEstadoSist, bool* pPeticion );
+
+/* Modifica el estado del comando */
+bool estadoSistemaEscribirComando( estadoSistema_t* pEstadoSist, estadoSistemaComando_t* pComando );
+
+/* Modifica el estado de la espera de estabilización */
+bool estadoSistemaEscribirEspera( estadoSistema_t* pEstadoSist, estadoSistemaEspera_t* pEspera );
 
 #endif

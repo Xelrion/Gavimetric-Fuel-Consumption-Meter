@@ -175,3 +175,30 @@ bool bufferCircularNumElementos( bufferCircular_t* pBuffer, int* pValor )
 
     return (pBuffer->err == BUFFER_OK);
 }
+
+/* Vacía la cola del buffer */
+bool bufferCircularLimpia( bufferCircular_t* pBuffer )
+{
+    if (xSemaphoreTake(pBuffer->mutex, (TickType_t) 10) == pdTRUE)
+    {
+        while (pBuffer->numElementos)
+        {
+            pBuffer->cola++;
+            pBuffer->cola = pBuffer->cola % NUMELEMENTOS;
+            pBuffer->numElementos--;
+        }
+        ESP_LOGE(pBuffer->tag, "Buffer vaciado");
+        pBuffer->err = BUFFER_OK;
+
+        xSemaphoreGive(pBuffer->mutex);
+    }
+    else
+    {
+        ESP_LOGE(pBuffer->tag, "Fallo al intentar tomar mutex");
+        ESP_LOGE(pBuffer->tag, "para retirar valor en posición %d", (pBuffer->cabeza));
+
+        pBuffer->err = BUFFER_ERR_MUTEX;
+    }
+
+    return (pBuffer->err == BUFFER_OK);
+}

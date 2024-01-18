@@ -3,16 +3,18 @@
 #define MEDIDASNIVEL_H
 
 #include "bufferCircular.h"
+#include "estadoSistema.h"
 
 /* Información que necesita la tarea de lecturas para funcionar */
 typedef struct _tareaMedidasNivelInfo
 {
     bufferCircular_t* pMedidas;
+    estadoSistema_t* pEstadoSist;
 } tareaMedidasNivelInfo_t;
 
 /* Punto de entrada a la tarea */
 void tareaMedidasNivel(void* pvParametros);
 
 /* Configuración de la tarea de lectura */
-void tareaMedidasNivelSet(tareaMedidasNivelInfo_t* pTaskInfo, bufferCircular_t* pMedidas);
+void tareaMedidasNivelSet(tareaMedidasNivelInfo_t* pTaskInfo, bufferCircular_t* pMedidas, estadoSistema_t* pEstadoSist);
 #endif
