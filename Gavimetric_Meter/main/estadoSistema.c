@@ -52,7 +52,7 @@ bool estadoSistemaLeerComando( estadoSistema_t* pEstadoSist, estadoSistemaComand
 {
     if (xSemaphoreTake(pEstadoSist->mutex, (TickType_t) 10) == pdTRUE)
     {
-        pComando = pEstadoSist->comando;
+        *pComando = pEstadoSist->comando;
         ESP_LOGD(pEstadoSist->tag, "Comando actual del sistema: %d", (pEstadoSist->comando));
         pEstadoSist->err = EST_SIST_OK;
         xSemaphoreGive(pEstadoSist->mutex);
@@ -73,7 +73,7 @@ bool estadoSistemaLeerEspera( estadoSistema_t* pEstadoSist, estadoSistemaEspera_
 {
     if (xSemaphoreTake(pEstadoSist->mutex, (TickType_t) 10) == pdTRUE)
     {
-        pEspera = pEstadoSist->esperaEstabilizacion;
+        *pEspera = pEstadoSist->esperaEstabilizacion;
         ESP_LOGD(pEstadoSist->tag, "Espera de estabilización: %d", (pEstadoSist->esperaEstabilizacion));
         pEstadoSist->err = EST_SIST_OK;
         xSemaphoreGive(pEstadoSist->mutex);
@@ -94,7 +94,7 @@ bool estadoSistemaLeerPeticion( estadoSistema_t* pEstadoSist, bool* pPeticion )
 {
     if (xSemaphoreTake(pEstadoSist->mutex, (TickType_t) 10) == pdTRUE)
     {
-        pPeticion = pEstadoSist->peticionMedidas;
+        *pPeticion = pEstadoSist->peticionMedidas;
         ESP_LOGD(pEstadoSist->tag, "Petición de medidas del sist. remoto: %d", (pEstadoSist->peticionMedidas));
         pEstadoSist->err = EST_SIST_OK;
         xSemaphoreGive(pEstadoSist->mutex);
@@ -145,6 +145,37 @@ bool estadoSistemaEscribirEspera( estadoSistema_t* pEstadoSist, estadoSistemaEsp
     {
         ESP_LOGE(pEstadoSist->tag, "Fallo al intentar tomar mutex");
         ESP_LOGE(pEstadoSist->tag, "para modificar el estado de la espera de estabilización: %d", (pEstadoSist->esperaEstabilizacion));
+
+        pEstadoSist->err = EST_SIST_ERR_MUTEX;
+    }
+
+    return (pEstadoSist->err == EST_SIST_OK);
+}
+
+/* Comprueba si la toma de medidas se puede o no hacer actualmente */
+bool estadoSistemaMedidasActivas( estadoSistema_t* pEstadoSist, bool* pMedidaActiva )
+{
+    bool medidaActiva = false;
+
+    bool medidaManual = false;  // activa si se están pidiendo medidas desde la consola manual
+    bool medidaRemotaActiva = false;    // activa si se están pidiendo medidas desde el sistema remoto
+    bool esperaActiva = true;   // activa si la espera de estabilización está iniciada o en curso
+
+    if (xSemaphoreTake(pEstadoSist->mutex, (TickType_t) 10) == pdTRUE)
+    {
+        if (pEstadoSist->comando == 1 | pEstadoSist->comando == 2) { medidaManual = true; }
+        if (pEstadoSist->comando == 3 & pEstadoSist->peticionMedidas == 1) { medidaRemotaActiva = true; }
+        if (pEstadoSist->esperaEstabilizacion == 0) { esperaActiva = false; }
+
+        /* Devuelve si se cumplen los requisitos de estado para poder tomar medidas */
+        *pMedidaActiva = ( (medidaManual + medidaRemotaActiva) * !esperaActiva);
+        ESP_LOGD(pEstadoSist->tag, "El estado de la toma de medidas es: %d", (pMedidaActiva));
+        pEstadoSist->err = EST_SIST_OK;
+        xSemaphoreGive(pEstadoSist->mutex);
+    }
+    else
+    {
+        ESP_LOGE(pEstadoSist->tag, "Fallo al intentar tomar mutex para comprobar el estado de toma de medidas");
 
         pEstadoSist->err = EST_SIST_ERR_MUTEX;
     }

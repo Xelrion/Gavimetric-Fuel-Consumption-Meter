@@ -79,4 +79,7 @@ bool estadoSistemaEscribirComando( estadoSistema_t* pEstadoSist, estadoSistemaCo
 /* Modifica el estado de la espera de estabilización */
 bool estadoSistemaEscribirEspera( estadoSistema_t* pEstadoSist, estadoSistemaEspera_t* pEspera );
 
+/* Comprueba si la toma de medidas se puede o no hacer actualmente */
+bool estadoSistemaMedidasActivas( estadoSistema_t* pEstadoSist, bool* pMedidaActiva );
+
 #endif
