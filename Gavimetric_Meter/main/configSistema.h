@@ -11,8 +11,6 @@ typedef enum _configSistemaError
 {
     CONFIG_SIST_OK,
     CONFIG_SIST_ERR_MUTEX,
-    CONFIG_SIST_ERR_LLENO,
-    CONFIG_SIST_ERR_VACIO
 
 } configSistemaError_t;
 
@@ -45,24 +43,24 @@ typedef struct _configSistema
 } configSistema_t;
 
 /* Crea una estructura de configuración del sistema */
-bool configSistemaCrea( configSistema_t* pEstadoSist, const char* etiqueta );
+bool configSistemaCrea( configSistema_t* pConfigSist, const char* etiqueta );
 
 /* Libera la estructura de configuración del sistema */
-bool configSistemaLibera( configSistema_t* pEstadoSist );
+bool configSistemaLibera( configSistema_t* pConfigSist );
 
 /* Lee el periodo de medidas */
-bool configSistemaLeerPeriodo( configSistema_t* pEstadoSist, double* pPeriodoMedida );
+bool configSistemaLeerPeriodo( configSistema_t* pConfigSist, double* pPeriodoMedida );
 
 /* Lee la espera de estabilización */
-bool configSistemaLeerEspera( configSistema_t* pEstadoSist, int* pEspera );
+bool configSistemaLeerEspera( configSistema_t* pConfigSist, int* pEspera );
 
 /* Lee el consumo máximo de combustible */
-bool configSistemaLeerConsumoMax( configSistema_t* pEstadoSist, int* pConsumoMax );
+bool configSistemaLeerConsumoMax( configSistema_t* pConfigSist, int* pConsumoMax );
 
 /* Lee el nivel máximo de combustible */
-bool configSistemaLeerNivelMax( configSistema_t* pEstadoSist, int* pNivelMax );
+bool configSistemaLeerNivelMax( configSistema_t* pConfigSist, int* pNivelMax );
 
 /* Lee el nivel mínimo de combustible */
-bool configSistemaLeerNivelMax( configSistema_t* pEstadoSist, int* pNivelMin );
+bool configSistemaLeerNivelMax( configSistema_t* pConfigSist, int* pNivelMin );
 
 #endif

@@ -12,8 +12,6 @@ typedef enum _estadoSistemaError
 {
     EST_SIST_OK,
     EST_SIST_ERR_MUTEX,
-    EST_SIST_ERR_LLENO,
-    EST_SIST_ERR_VACIO
 
 } estadoSistemaError_t;
 

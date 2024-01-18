@@ -18,13 +18,13 @@
 #include "esp_log.h"
 #include "freertos/semphr.h"
 
-/* Crea la estructura de estado del sistema */
+/* Crea la estructura de configuración del sistema */
 bool configSistemaCrea( configSistema_t* pConfigSist, const char* etiqueta)
 {
     /* Reservar un semaforo de exclusión mutua */
     if ((pConfigSist->mutex = xSemaphoreCreateMutex()) != NULL)
     {
-        /* Inicializar estados del sistema con los valores por defecto */
+        /* Inicializar parámetros del sistema con los valores por defecto */
         pConfigSist->periodoMedida = 500;   // ms
         pConfigSist->esperaEstabilizacion = 5;  // s
         pConfigSist->consumoMaximo = 10;
@@ -41,7 +41,7 @@ bool configSistemaCrea( configSistema_t* pConfigSist, const char* etiqueta)
     return (pConfigSist->err == CONFIG_SIST_OK);
 }
 
-/* Libera los recursos usados por una estructura de estado del sistema */
+/* Libera los recursos usados por una estructura de configuración del sistema */
 bool configSistemaLibera( configSistema_t* pConfigSist )
 {
     /* Libera el semaforo de exclusión mutua */
@@ -53,106 +53,106 @@ bool configSistemaLibera( configSistema_t* pConfigSist )
 }
 
 /* Lee el periodo de medidas */
-bool configSistemaLeerPeriodo( configSistema_t* pEstadoSist, double* pPeriodoMedida )
+bool configSistemaLeerPeriodo( configSistema_t* pConfigSist, double* pPeriodoMedida )
 {
-    if (xSemaphoreTake(pEstadoSist->mutex, (TickType_t) 10) == pdTRUE)
+    if (xSemaphoreTake(pConfigSist->mutex, (TickType_t) 10) == pdTRUE)
     {
-        *pPeriodoMedida = pEstadoSist->periodoMedida;
-        ESP_LOGD(pEstadoSist->tag, "Periodo de medidas: %d", (pEstadoSist->periodoMedida));
-        pEstadoSist->err = CONFIG_SIST_OK;
-        xSemaphoreGive(pEstadoSist->mutex);
+        *pPeriodoMedida = pConfigSist->periodoMedida;
+        ESP_LOGD(pConfigSist->tag, "Periodo de medidas: %d", (pConfigSist->periodoMedida));
+        pConfigSist->err = CONFIG_SIST_OK;
+        xSemaphoreGive(pConfigSist->mutex);
     }
     else
     {
-        ESP_LOGE(pEstadoSist->tag, "Fallo al intentar tomar mutex");
-        ESP_LOGE(pEstadoSist->tag, "para leer el periodo de medidas: %d", (pEstadoSist->periodoMedida));
+        ESP_LOGE(pConfigSist->tag, "Fallo al intentar tomar mutex");
+        ESP_LOGE(pConfigSist->tag, "para leer el periodo de medidas: %d", (pConfigSist->periodoMedida));
 
-        pEstadoSist->err = CONFIG_SIST_ERR_MUTEX;
+        pConfigSist->err = CONFIG_SIST_ERR_MUTEX;
     }
 
-    return (pEstadoSist->err == CONFIG_SIST_OK);
+    return (pConfigSist->err == CONFIG_SIST_OK);
 }
 
 /* Lee la espera de estabilización */
-bool configSistemaLeerEspera( configSistema_t* pEstadoSist, int* pEspera )
+bool configSistemaLeerEspera( configSistema_t* pConfigSist, int* pEspera )
 {
-    if (xSemaphoreTake(pEstadoSist->mutex, (TickType_t) 10) == pdTRUE)
+    if (xSemaphoreTake(pConfigSist->mutex, (TickType_t) 10) == pdTRUE)
     {
-        *pEspera = pEstadoSist->esperaEstabilizacion;
-        ESP_LOGD(pEstadoSist->tag, "Tiempo de espera: %d", (pEstadoSist->esperaEstabilizacion));
-        pEstadoSist->err = CONFIG_SIST_OK;
-        xSemaphoreGive(pEstadoSist->mutex);
+        *pEspera = pConfigSist->esperaEstabilizacion;
+        ESP_LOGD(pConfigSist->tag, "Tiempo de espera: %d", (pConfigSist->esperaEstabilizacion));
+        pConfigSist->err = CONFIG_SIST_OK;
+        xSemaphoreGive(pConfigSist->mutex);
     }
     else
     {
-        ESP_LOGE(pEstadoSist->tag, "Fallo al intentar tomar mutex");
-        ESP_LOGE(pEstadoSist->tag, "para leer el tiempo de espera de estabilización: %d", (pEstadoSist->esperaEstabilizacion));
+        ESP_LOGE(pConfigSist->tag, "Fallo al intentar tomar mutex");
+        ESP_LOGE(pConfigSist->tag, "para leer el tiempo de espera de estabilización: %d", (pConfigSist->esperaEstabilizacion));
 
-        pEstadoSist->err = CONFIG_SIST_ERR_MUTEX;
+        pConfigSist->err = CONFIG_SIST_ERR_MUTEX;
     }
 
-    return (pEstadoSist->err == CONFIG_SIST_OK);
+    return (pConfigSist->err == CONFIG_SIST_OK);
 }
 
 /* Lee el consumo máximo de combustible */
-bool configSistemaLeerConsumoMax( configSistema_t* pEstadoSist, int* pConsumoMax )
+bool configSistemaLeerConsumoMax( configSistema_t* pConfigSist, int* pConsumoMax )
 {
-    if (xSemaphoreTake(pEstadoSist->mutex, (TickType_t) 10) == pdTRUE)
+    if (xSemaphoreTake(pConfigSist->mutex, (TickType_t) 10) == pdTRUE)
     {
-        *pConsumoMax = pEstadoSist->consumoMaximo;
-        ESP_LOGD(pEstadoSist->tag, "Consumo máximo: %d", (pEstadoSist->consumoMaximo));
-        pEstadoSist->err = CONFIG_SIST_OK;
-        xSemaphoreGive(pEstadoSist->mutex);
+        *pConsumoMax = pConfigSist->consumoMaximo;
+        ESP_LOGD(pConfigSist->tag, "Consumo máximo: %d", (pConfigSist->consumoMaximo));
+        pConfigSist->err = CONFIG_SIST_OK;
+        xSemaphoreGive(pConfigSist->mutex);
     }
     else
     {
-        ESP_LOGE(pEstadoSist->tag, "Fallo al intentar tomar mutex");
-        ESP_LOGE(pEstadoSist->tag, "para leer el consumo máximo de combustible: %d", (pEstadoSist->consumoMaximo));
+        ESP_LOGE(pConfigSist->tag, "Fallo al intentar tomar mutex");
+        ESP_LOGE(pConfigSist->tag, "para leer el consumo máximo de combustible: %d", (pConfigSist->consumoMaximo));
 
-        pEstadoSist->err = CONFIG_SIST_ERR_MUTEX;
+        pConfigSist->err = CONFIG_SIST_ERR_MUTEX;
     }
 
-    return (pEstadoSist->err == CONFIG_SIST_OK);
+    return (pConfigSist->err == CONFIG_SIST_OK);
 }
 
 /* Lee el nivel máximo de combustible */
-bool configSistemaLeerNivelMax( configSistema_t* pEstadoSist, int* pNivelMax )
+bool configSistemaLeerNivelMax( configSistema_t* pConfigSist, int* pNivelMax )
 {
-    if (xSemaphoreTake(pEstadoSist->mutex, (TickType_t) 10) == pdTRUE)
+    if (xSemaphoreTake(pConfigSist->mutex, (TickType_t) 10) == pdTRUE)
     {
-        *pNivelMax = pEstadoSist->nivelMaximo;
-        ESP_LOGD(pEstadoSist->tag, "Nivel máximo: %d", (pEstadoSist->nivelMaximo));
-        pEstadoSist->err = CONFIG_SIST_OK;
-        xSemaphoreGive(pEstadoSist->mutex);
+        *pNivelMax = pConfigSist->nivelMaximo;
+        ESP_LOGD(pConfigSist->tag, "Nivel máximo: %d", (pConfigSist->nivelMaximo));
+        pConfigSist->err = CONFIG_SIST_OK;
+        xSemaphoreGive(pConfigSist->mutex);
     }
     else
     {
-        ESP_LOGE(pEstadoSist->tag, "Fallo al intentar tomar mutex");
-        ESP_LOGE(pEstadoSist->tag, "para leer el nivel máximo de combustible: %d", (pEstadoSist->nivelMaximo));
+        ESP_LOGE(pConfigSist->tag, "Fallo al intentar tomar mutex");
+        ESP_LOGE(pConfigSist->tag, "para leer el nivel máximo de combustible: %d", (pConfigSist->nivelMaximo));
 
-        pEstadoSist->err = CONFIG_SIST_ERR_MUTEX;
+        pConfigSist->err = CONFIG_SIST_ERR_MUTEX;
     }
 
-    return (pEstadoSist->err == CONFIG_SIST_OK);
+    return (pConfigSist->err == CONFIG_SIST_OK);
 }
 
 /* Lee el nivel mínimo de combustible */
-bool configSistemaLeerNivelMin( configSistema_t* pEstadoSist, int* pNivelMin )
+bool configSistemaLeerNivelMin( configSistema_t* pConfigSist, int* pNivelMin )
 {
-    if (xSemaphoreTake(pEstadoSist->mutex, (TickType_t) 10) == pdTRUE)
+    if (xSemaphoreTake(pConfigSist->mutex, (TickType_t) 10) == pdTRUE)
     {
-        *pNivelMin = pEstadoSist->nivelMinimo;
-        ESP_LOGD(pEstadoSist->tag, "Nivel mínimo: %d", (pEstadoSist->nivelMinimo));
-        pEstadoSist->err = CONFIG_SIST_OK;
-        xSemaphoreGive(pEstadoSist->mutex);
+        *pNivelMin = pConfigSist->nivelMinimo;
+        ESP_LOGD(pConfigSist->tag, "Nivel mínimo: %d", (pConfigSist->nivelMinimo));
+        pConfigSist->err = CONFIG_SIST_OK;
+        xSemaphoreGive(pConfigSist->mutex);
     }
     else
     {
-        ESP_LOGE(pEstadoSist->tag, "Fallo al intentar tomar mutex");
-        ESP_LOGE(pEstadoSist->tag, "para leer el nivel mínimo de combustible: %d", (pEstadoSist->nivelMinimo));
+        ESP_LOGE(pConfigSist->tag, "Fallo al intentar tomar mutex");
+        ESP_LOGE(pConfigSist->tag, "para leer el nivel mínimo de combustible: %d", (pConfigSist->nivelMinimo));
 
-        pEstadoSist->err = CONFIG_SIST_ERR_MUTEX;
+        pConfigSist->err = CONFIG_SIST_ERR_MUTEX;
     }
 
-    return (pEstadoSist->err == CONFIG_SIST_OK);
+    return (pConfigSist->err == CONFIG_SIST_OK);
 }
