@@ -4,17 +4,21 @@
 
 #include "bufferCircular.h"
 #include "estadoSistema.h"
+#include "configSistema.h"
+#include "paradaEmergencia.h"
 
-/* Información que necesita la tarea de lecturas para funcionar */
+/* Información que necesita la tarea de toma de medidas para funcionar */
 typedef struct _tareaMedidasNivelInfo
 {
     bufferCircular_t* pMedidas;
     estadoSistema_t* pEstadoSist;
+    configSistema_t* pConfigSist;
+    paradaEmergencia_t* pEmergencia;
 } tareaMedidasNivelInfo_t;
 
 /* Punto de entrada a la tarea */
 void tareaMedidasNivel(void* pvParametros);
 
-/* Configuración de la tarea de lectura */
-void tareaMedidasNivelSet(tareaMedidasNivelInfo_t* pTaskInfo, bufferCircular_t* pMedidas, estadoSistema_t* pEstadoSist);
+/* Configuración de la tarea de toma de medidas */
+void tareaMedidasNivelSet(tareaMedidasNivelInfo_t* pTaskInfo, bufferCircular_t* pMedidas, estadoSistema_t* pEstadoSist, configSistema_t* pConfigSist, paradaEmergencia_t* pEmergencia);
 #endif

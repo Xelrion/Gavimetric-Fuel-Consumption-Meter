@@ -42,4 +42,7 @@ bool paradaEmergenciaActivar( paradaEmergencia_t* pEmergencia );
 /* Desactiva la parada de emergencia */
 bool paradaEmergenciaDesactivar( paradaEmergencia_t* pEmergencia );
 
+/* Lee el estado de la parada de emergencia */
+bool paradaEmergenciaLeer( paradaEmergencia_t* pEmergencia, bool* pEstadoEmergencia );
+
 #endif

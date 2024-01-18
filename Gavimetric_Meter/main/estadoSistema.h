@@ -34,6 +34,15 @@ typedef enum _estadoSistemaEspera
 
 } estadoSistemaEspera_t;
 
+/* Aviso de límite de nivel del depósito */
+typedef enum _estadoSistemaNivel
+{
+    NORMAL,
+    MAXIMO,
+    MINIMO
+
+} estadoSistemaNivel_t;
+
 typedef struct _estadoSistema
 {
     /* Nombre de la estructura */
@@ -47,6 +56,9 @@ typedef struct _estadoSistema
 
     /* Estado de la espera de estabilización */
     estadoSistemaEspera_t esperaEstabilizacion;
+
+    /* Aviso de límite de nivel del depósito */
+    estadoSistemaNivel_t nivelDeposito;
 
     /* Estado de señal de petición de medidas remotas*/
     bool peticionMedidas;
@@ -68,14 +80,20 @@ bool estadoSistemaLeerComando( estadoSistema_t* pEstadoSist, estadoSistemaComand
 /* Lee el estado de la espera de estabilización */
 bool estadoSistemaLeerEspera( estadoSistema_t* pEstadoSist, estadoSistemaEspera_t* pEspera );
 
+/* Lee el aviso de límite de nivel del depósito */
+bool estadoSistemaLeerNivel( estadoSistema_t* pEstadoSist, estadoSistemaNivel_t* pNivel );
+
 /* Lee el estado de la petición de medidas remotas */
 bool estadoSistemaLeerPeticion( estadoSistema_t* pEstadoSist, bool* pPeticion );
 
 /* Modifica el estado del comando */
-bool estadoSistemaEscribirComando( estadoSistema_t* pEstadoSist, estadoSistemaComando_t* pComando );
+bool estadoSistemaEscribirComando( estadoSistema_t* pEstadoSist, estadoSistemaComando_t pComando );
 
 /* Modifica el estado de la espera de estabilización */
-bool estadoSistemaEscribirEspera( estadoSistema_t* pEstadoSist, estadoSistemaEspera_t* pEspera );
+bool estadoSistemaEscribirEspera( estadoSistema_t* pEstadoSist, estadoSistemaEspera_t pEspera );
+
+/* Modifica el aviso de límite de nivel del depósito */
+bool estadoSistemaEscribirNivel( estadoSistema_t* pEstadoSist, estadoSistemaNivel_t pNivel );
 
 /* Comprueba si la toma de medidas se puede o no hacer actualmente */
 bool estadoSistemaMedidasActivas( estadoSistema_t* pEstadoSist, bool* pMedidaActiva );

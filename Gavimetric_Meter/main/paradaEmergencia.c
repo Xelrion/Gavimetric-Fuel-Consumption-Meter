@@ -1,5 +1,6 @@
 /***********************************************************************************************************
  * MÓDULO DE PARADA DE EMERGENCIA
+ * Recurso compartido: estado de emergencia
  * Almacena el estado de emergencia: activo o inactivo
  * Solo puede ser activado por desbordamiento o por comando de consola
  * Solo puede ser desactivado mediante comando de consola
@@ -78,6 +79,27 @@ bool paradaEmergenciaDesactivar( paradaEmergencia_t* pEmergencia )
     else
     {
         ESP_LOGE(pEmergencia->tag, "Fallo al intentar desactivar la parada de emergencia");
+
+        pEmergencia->err = EMERGENCIA_ERR_MUTEX;
+    }
+
+    return (pEmergencia->err == EMERGENCIA_OK);
+}
+
+/* Lee el estado de la parada de emergencia */
+bool paradaEmergenciaLeer( paradaEmergencia_t* pEmergencia, bool* pEstadoEmergencia )
+{
+    if (xSemaphoreTake(pEmergencia->mutex, (TickType_t) 10) == pdTRUE)
+    {
+        *pEstadoEmergencia = pEmergencia->paradaEmergencia;
+        ESP_LOGD(pEmergencia->tag, "Estado parada emergencia: %d", (pEmergencia->paradaEmergencia));
+        pEmergencia->err = EMERGENCIA_OK;
+        xSemaphoreGive(pEmergencia->mutex);
+    }
+    else
+    {
+        ESP_LOGE(pEmergencia->tag, "Fallo al intentar tomar mutex");
+        ESP_LOGE(pEmergencia->tag, "para leer el estado de la parada de emergencia: %d", (pEmergencia->paradaEmergencia));
 
         pEmergencia->err = EMERGENCIA_ERR_MUTEX;
     }

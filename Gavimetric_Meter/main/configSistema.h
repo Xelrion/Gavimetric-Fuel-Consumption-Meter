@@ -63,4 +63,7 @@ bool configSistemaLeerNivelMax( configSistema_t* pConfigSist, int* pNivelMax );
 /* Lee el nivel mínimo de combustible */
 bool configSistemaLeerNivelMax( configSistema_t* pConfigSist, int* pNivelMin );
 
+/* Indica si una medida supera alguno de los niveles límite de combustible */
+bool configSistemaComprobarNivel( configSistema_t* pConfigSist, double pMedida, bool* pNivelMin, bool* pNivelMax );
+
 #endif

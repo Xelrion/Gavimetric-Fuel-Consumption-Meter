@@ -1,8 +1,8 @@
 /***********************************************************************************************************
  * MÓDULO DE MONITORIZACIÓN DEL DEPÓSITO
  * Recurso compartido: estado de comandos y notificaciones del sistema
- * Almacena el último comando enviado por el sistema de control, el estado de la espera de estabilización
- * y el estado de petición de medidas al sistema remoto.
+ * Almacena el último comando enviado por el sistema de control (relacionado con la toma de medidas),
+ * el estado de la espera de estabilización y la señal digital de petición de medidas del sistema remoto.
  * Los componentes de monitorización revisan este recurso para ejecutar sus tareas.
  ***********************************************************************************************************/
 
@@ -24,6 +24,7 @@ bool estadoSistemaCrea( estadoSistema_t* pEstadoSist, const char* etiqueta)
         /* Inicializar estados del sistema */
         pEstadoSist->comando = MEDIDA_OFF;
         pEstadoSist->esperaEstabilizacion = DESACTIVADA;
+        pEstadoSist->nivelDeposito = NORMAL;
         pEstadoSist->peticionMedidas = 0;
         pEstadoSist->tag = etiqueta;
         pEstadoSist->err = EST_SIST_OK;
@@ -89,6 +90,27 @@ bool estadoSistemaLeerEspera( estadoSistema_t* pEstadoSist, estadoSistemaEspera_
     return (pEstadoSist->err == EST_SIST_OK);
 }
 
+/* Lee el aviso de límite de nivel del depósito */
+bool estadoSistemaLeerNivel( estadoSistema_t* pEstadoSist, estadoSistemaNivel_t* pNivel )
+{
+    if (xSemaphoreTake(pEstadoSist->mutex, (TickType_t) 10) == pdTRUE)
+    {
+        *pNivel = pEstadoSist->nivelDeposito;
+        ESP_LOGD(pEstadoSist->tag, "Nivel del depósito: %d", (pEstadoSist->nivelDeposito));
+        pEstadoSist->err = EST_SIST_OK;
+        xSemaphoreGive(pEstadoSist->mutex);
+    }
+    else
+    {
+        ESP_LOGE(pEstadoSist->tag, "Fallo al intentar tomar mutex");
+        ESP_LOGE(pEstadoSist->tag, "para leer el aviso de nivel del depósito: %d", (pEstadoSist->nivelDeposito));
+
+        pEstadoSist->err = EST_SIST_ERR_MUTEX;
+    }
+
+    return (pEstadoSist->err == EST_SIST_OK);
+}
+
 /* Lee el estado de la petición de medidas remotas */
 bool estadoSistemaLeerPeticion( estadoSistema_t* pEstadoSist, bool* pPeticion )
 {
@@ -111,7 +133,7 @@ bool estadoSistemaLeerPeticion( estadoSistema_t* pEstadoSist, bool* pPeticion )
 }
 
 /* Modifica el estado del comando */
-bool estadoSistemaEscribirComando( estadoSistema_t* pEstadoSist, estadoSistemaComando_t* pComando )
+bool estadoSistemaEscribirComando( estadoSistema_t* pEstadoSist, estadoSistemaComando_t pComando )
 {
     if (xSemaphoreTake(pEstadoSist->mutex, (TickType_t) 10) == pdTRUE)
     {
@@ -132,7 +154,7 @@ bool estadoSistemaEscribirComando( estadoSistema_t* pEstadoSist, estadoSistemaCo
 }
 
 /* Modifica el estado de la espera de estabilización */
-bool estadoSistemaEscribirEspera( estadoSistema_t* pEstadoSist, estadoSistemaEspera_t* pEspera )
+bool estadoSistemaEscribirEspera( estadoSistema_t* pEstadoSist, estadoSistemaEspera_t pEspera )
 {
     if (xSemaphoreTake(pEstadoSist->mutex, (TickType_t) 10) == pdTRUE)
     {
@@ -145,6 +167,27 @@ bool estadoSistemaEscribirEspera( estadoSistema_t* pEstadoSist, estadoSistemaEsp
     {
         ESP_LOGE(pEstadoSist->tag, "Fallo al intentar tomar mutex");
         ESP_LOGE(pEstadoSist->tag, "para modificar el estado de la espera de estabilización: %d", (pEstadoSist->esperaEstabilizacion));
+
+        pEstadoSist->err = EST_SIST_ERR_MUTEX;
+    }
+
+    return (pEstadoSist->err == EST_SIST_OK);
+}
+
+/* Modifica el aviso de límite de nivel del depósito */
+bool estadoSistemaEscribirNivel( estadoSistema_t* pEstadoSist, estadoSistemaNivel_t pNivel )
+{
+    if (xSemaphoreTake(pEstadoSist->mutex, (TickType_t) 10) == pdTRUE)
+    {
+        pEstadoSist->nivelDeposito = pNivel;
+        ESP_LOGD(pEstadoSist->tag, "Nivel del depósito: %d", (pEstadoSist->nivelDeposito));
+        pEstadoSist->err = EST_SIST_OK;
+        xSemaphoreGive(pEstadoSist->mutex);
+    }
+    else
+    {
+        ESP_LOGE(pEstadoSist->tag, "Fallo al intentar tomar mutex");
+        ESP_LOGE(pEstadoSist->tag, "para modificar el aviso de nivel del depósito: %d", (pEstadoSist->nivelDeposito));
 
         pEstadoSist->err = EST_SIST_ERR_MUTEX;
     }

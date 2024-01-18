@@ -156,3 +156,30 @@ bool configSistemaLeerNivelMin( configSistema_t* pConfigSist, int* pNivelMin )
 
     return (pConfigSist->err == CONFIG_SIST_OK);
 }
+
+/* Indica si una medida supera alguno de los niveles límite de combustible */
+bool configSistemaComprobarNivel( configSistema_t* pConfigSist, double pMedida, bool* pNivelMin, bool* pNivelMax )
+{
+    if (xSemaphoreTake(pConfigSist->mutex, (TickType_t) 10) == pdTRUE)
+    {
+        /* Comprueba si la medida supera el nivel máximo */
+        if (pMedida >= pConfigSist->nivelMaximo) {*pNivelMax = true;}
+        else {*pNivelMax = false;}
+
+        /* Comprueba si la medida supera el nivel mínimo */
+        if (pMedida <= pConfigSist->nivelMinimo) {*pNivelMin = true;}
+        else {*pNivelMin = false;}
+
+        pConfigSist->err = CONFIG_SIST_OK;
+        xSemaphoreGive(pConfigSist->mutex);
+    }
+    else
+    {
+        ESP_LOGE(pConfigSist->tag, "Fallo al intentar tomar mutex");
+        ESP_LOGE(pConfigSist->tag, "para comprobar si la medida supera los límites de nivel: %d", (pMedida));
+
+        pConfigSist->err = CONFIG_SIST_ERR_MUTEX;
+    }
+
+    return (pConfigSist->err == CONFIG_SIST_OK);
+}

@@ -12,13 +12,12 @@
 #include "esp_log.h"
 
 #include "myTaskConfig.h"
+#include "estadoSistema.h"
 #include "fsm.h"
 #include "controlDeposito.h"
 
 /* Etiqueta para depuración */
 const char* TAG = "controlDeposito";
-
-// Nota: crear otro objeto pasivo para implementar el control directo sobre el depósito, que solo espere a recibir instrucciones directas de este módulo
 
 /***********************************************************************************************************
  * Funciones de control del depósito
@@ -176,9 +175,9 @@ fsm_t* controlDeposito_new (void)
  ***********************************************************************************************************/
 
 /* Configuración de la tarea de control del depósito */
-void tareaControlDepositoSet(tareaControlDepositoInfo_t* pTaskInfo, bufferCircular_t* pMedias)
+void tareaControlDepositoSet(tareaControlDepositoInfo_t* pTaskInfo, estadoSistema_t* pEstadoSist)
 {
-    pTaskInfo->pMedias   = pMedias;
+    pTaskInfo->pEstadoSist   = pEstadoSist;
 }
 
 void tareaControlDeposito(void* pParametros)
