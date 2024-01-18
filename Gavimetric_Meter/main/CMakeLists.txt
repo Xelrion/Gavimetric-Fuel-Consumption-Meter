@@ -1,2 +1,2 @@
-idf_component_register(SRCS "calculaConsumo.c" "main_old.c" "medidasNivel.c" "controlDeposito.c" "fsm.c" "myTaskConfig.c" "informe.c" "calculaMedias.c" "bufferCircular.c" "analogInput.c" "main.c"
+idf_component_register(SRCS "estadoSistema.c" "calculaConsumo.c" "main_old.c" "medidasNivel.c" "controlDeposito.c" "fsm.c" "myTaskConfig.c" "informe.c" "calculaMedias.c" "bufferCircular.c" "analogInput.c" "main.c"
                     INCLUDE_DIRS ".")

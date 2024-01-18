@@ -85,6 +85,7 @@ void tareaLectura(void* pParametros)
     bool continuar = true;
     double medida = 0.0;
     int timer_periodo_medidas = 0;  // cada vez que llega a 0, se toma una medida y se reinicia
+    int timer_espera_estabilizacion = 0;    // mientras esté activo, no se tomarán medidas. Al desactivarse, se modifica el estado de espera
 
     while( continuar )
     {
@@ -108,14 +109,15 @@ void tareaLectura(void* pParametros)
         // Nota: Comprueba el estado de la máq. de estados de cálculo de consumo
         // Si está en "desactivado" o "espera", limpia el buffer de medidas y no toma medida
         // Luego, comprueba si el timer de periodo de medidas ha llegado a 0
-        // Si se cumplen ambas condiciones, reinicia el timer e incluye la medida en el buffer
+        // Finalmente, comprueba si el timer de espera de estabilización ha llegado a 0
+        // Si se cumplen todas condiciones, reinicia el timer e incluye la medida en el buffer
         /* Incluye la medida tomada en el buffer de lecturas */
         if (!bufferCircularMete(pMedidas, medida))
         {
             continuar = false;
         };
 
-        /* Actualiza el timer */
+        /* Actualiza el timer de periodo de medidas*/
         timer_next(&timer_periodo_medidas);
     }
 }
