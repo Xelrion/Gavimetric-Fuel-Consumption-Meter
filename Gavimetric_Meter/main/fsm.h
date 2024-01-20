@@ -39,6 +39,6 @@ fsm_t* fsm_new (fsm_trans_t* tt);
 void fsm_init (fsm_t* self, fsm_trans_t* tt);
 
 // Actualiza una máquina de estados
-void fsm_update (fsm_t* self);
+void fsm_update (fsm_t* self, void* p_params);
 
 #endif

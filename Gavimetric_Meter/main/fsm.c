@@ -20,7 +20,7 @@ void fsm_init (fsm_t* p_fsm, fsm_trans_t* tt)
 }
 
 /***** Actualiza una máquina de estados *****/
-void fsm_update (fsm_t* p_fsm)
+void fsm_update (fsm_t* p_fsm, void* p_params)
 {
   fsm_trans_t* t;
 

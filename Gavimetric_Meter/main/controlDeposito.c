@@ -13,6 +13,7 @@
 
 #include "myTaskConfig.h"
 #include "estadoSistema.h"
+#include "paradaEmergencia.h"
 #include "fsm.h"
 #include "controlDeposito.h"
 
@@ -66,48 +67,84 @@ void valv_vac_close (void)
 /* Parada de emergencia inactiva Y (Comando de llenado O Detección de nivel mínimo)*/
 bool deposito_c12 (void *params)
 {
-    bool emergencia = 0;/* Nota: comprobación estado de emergencia */
-    bool llenado = 0;/* Nota: comprobación comando de llenado */
-    bool nivel_min = 0;/* Nota: comprobación nivel mínimo */
+    tareaControlDepositoParams_t *pParams = (tareaControlDepositoParams_t *)params;
+
+    bool emergencia = 0;
+    bool llenado = 0;
+    bool nivel_min = 0;
+
+    emergencia = pParams->emergencia;
+    if (pParams->estadoDeposito == LLENADO) { llenado = 1; }
+    if (pParams->nivelDeposito == MINIMO) { nivel_min = 1; }
+
     return !emergencia * (llenado + nivel_min);
 }
 
 /* Parada de emergencia inactiva Y Comando de vaciado */
 bool deposito_c13 (void *params)
 {
-    bool emergencia = 0;/* Nota: comprobación estado de emergencia */
-    bool vaciado = 0;/* Nota: comprobación comando de vaciado */
+    tareaControlDepositoParams_t *pParams = (tareaControlDepositoParams_t *)params;
+
+    bool emergencia = 0;
+    bool vaciado = 0;
+
+    emergencia = pParams->emergencia;
+    if (pParams->estadoDeposito == VACIADO) { vaciado = 1; }
+
     return !emergencia * vaciado;
 }
 
 /* Parada de emergencia activa O Comando de detención de llenado O Detección de nivel máximo */
 bool deposito_c21 (void *params)
 {
-    bool emergencia = 0;/* Nota: comprobación estado de emergencia */
-    bool llenado_stop = 0;/* Nota: comprobación comando de detención de llenado */
-    bool nivel_max = 0;/* Nota: comprobación nivel máximo */
+    tareaControlDepositoParams_t *pParams = (tareaControlDepositoParams_t *)params;
+
+    bool emergencia = 0;
+    bool llenado_stop = 0;
+    bool nivel_max = 0;
+
+    emergencia = pParams->emergencia;
+    if (pParams->estadoDeposito == NORMAL) { llenado_stop = 1; }
+    if (pParams->nivelDeposito == MAXIMO) { nivel_max = 1; }
+
     return emergencia + llenado_stop + nivel_max;
 }
 
 /* Comando de vaciado */
 bool deposito_c23 (void *params)
 {
-    bool vaciado = 0;/* Nota: comprobación comando de vaciado */
+    tareaControlDepositoParams_t *pParams = (tareaControlDepositoParams_t *)params;
+
+    bool vaciado = 0;
+
+    if (pParams->estadoDeposito == VACIADO) { vaciado = 1; }
+
     return vaciado;
 }
 
 /* Parada de emergencia activa O Comando de detención de vaciado */
 bool deposito_c31 (void *params)
 {
-    bool emergencia = 0;/* Nota: comprobación estado de emergencia */
-    bool vaciado_stop = 0;/* Nota: comprobación comando de detención de vaciado */
+    tareaControlDepositoParams_t *pParams = (tareaControlDepositoParams_t *)params;
+
+    bool emergencia = 0;
+    bool vaciado_stop = 0;
+
+    emergencia = pParams->emergencia;
+    if (pParams->estadoDeposito == NORMAL) { vaciado_stop = 1; }
+
     return emergencia + vaciado_stop;
 }
 
 /* Comando de llenado */
 bool deposito_c32 (void *params)
 {
-    bool llenado = 0;/* Nota: comprobación comando de llenado */
+    tareaControlDepositoParams_t *pParams = (tareaControlDepositoParams_t *)params;
+
+    bool llenado = 0;
+
+    if (pParams->estadoDeposito == LLENADO) { llenado = 1; }
+
     return llenado;
 }
 
@@ -117,43 +154,77 @@ bool deposito_c32 (void *params)
 
 void deposito_a12 (void* params)
 {
+    tareaControlDepositoParams_t *pParams = (tareaControlDepositoParams_t *)params;
+    estadoSistema_t* pEstadoSist = pParams->estadoDeposito;
+
     bomba_on();
     valv_llen_open();
+
+    if ( !estadoSistemaEscribirDeposito(pEstadoSist, LLENADO) ) { *(pParams->continuar) = false; }
 }
 
 void deposito_a13 (void* params)
 {
+    tareaControlDepositoParams_t *pParams = (tareaControlDepositoParams_t *)params;
+    estadoSistema_t* pEstadoSist = pParams->estadoDeposito;
+
     valv_vac_open();
+
+    if ( !estadoSistemaEscribirDeposito(pEstadoSist, VACIADO) ) { *(pParams->continuar) = false; }
 }
 
 void deposito_a23 (void* params)
 {
+    tareaControlDepositoParams_t *pParams = (tareaControlDepositoParams_t *)params;
+    estadoSistema_t* pEstadoSist = pParams->estadoDeposito;
+
     bomba_off();
     valv_llen_close();
     valv_vac_open();
+
+    if ( !estadoSistemaEscribirDeposito(pEstadoSist, VACIADO) ) { *(pParams->continuar) = false; }
 }
 
 void deposito_a32 (void* params)
 {
+    tareaControlDepositoParams_t *pParams = (tareaControlDepositoParams_t *)params;
+    estadoSistema_t* pEstadoSist = pParams->estadoDeposito;
+
     valv_vac_close();
     valv_llen_open();
     bomba_on();
+
+    if ( !estadoSistemaEscribirDeposito(pEstadoSist, LLENADO) ) { *(pParams->continuar) = false; }
 }
 
 void deposito_a21 (void* params)
 {
+    tareaControlDepositoParams_t *pParams = (tareaControlDepositoParams_t *)params;
+    estadoSistema_t* pEstadoSist = pParams->estadoDeposito;
+
     bomba_off();
     valv_llen_close();
-    /* Nota: inicio contador estabilización */
+    
+    if ( !estadoSistemaEscribirDeposito(pEstadoSist, NORMAL) ) { *(pParams->continuar) = false; }
+    /* Se inicia la espera de estabilización */
+    if ( !estadoSistemaEscribirEspera(pEstadoSist, INICIADA) ) { *(pParams->continuar) = false; }
 }
 
 void deposito_a31 (void* params)
 {
+    tareaControlDepositoParams_t *pParams = (tareaControlDepositoParams_t *)params;
+    estadoSistema_t* pEstadoSist = pParams->estadoDeposito;
+
     valv_vac_close();
+
+    if ( !estadoSistemaEscribirDeposito(pEstadoSist, NORMAL) ) { *(pParams->continuar) = false; }
 }
 
 /***********************************************************************************************************
  * Inicialización de la máquina de estados
+ * Estado 1: Funcionamiento normal
+ * Estado 2: Llenado
+ * Estado 3: Vaciado
  ***********************************************************************************************************/
 
 fsm_t* controlDeposito_new (void)
@@ -175,18 +246,20 @@ fsm_t* controlDeposito_new (void)
  ***********************************************************************************************************/
 
 /* Configuración de la tarea de control del depósito */
-void tareaControlDepositoSet(tareaControlDepositoInfo_t* pTaskInfo, estadoSistema_t* pEstadoSist)
+void tareaControlDepositoSet(tareaControlDepositoInfo_t* pTaskInfo, estadoSistema_t* pEstadoSist, paradaEmergencia_t* pEmergencia)
 {
     pTaskInfo->pEstadoSist   = pEstadoSist;
+    pTaskInfo->pEmergencia   = pEmergencia;
 }
 
 void tareaControlDeposito(void* pParametros)
 {
     /* Estructuras para intercambio de información */
     /* Entre la tarea y la aplicación principal */
-    taskConfig_t* pConfig = ((taskInfo_t *)pParametros)->pConfig;
-    void*           pData = ((taskInfo_t *)pParametros)->pData;
-    // bufferCircular_t*  pMedias   = ((tareaInformeInfo_t*)pData)->pMedias; Nota: añadir referencia a otros módulos y estructuras necesarios para la tarea
+    taskConfig_t* pConfig           = ((taskInfo_t *)pParametros)->pConfig;
+    void*           pData           = ((taskInfo_t *)pParametros)->pData;
+    estadoSistema_t* pEstadoSist    = ((tareaControlDepositoInfo_t *)pParametros)->pEstadoSist;
+    paradaEmergencia_t* pEmergencia = ((tareaControlDepositoInfo_t *)pParametros)->pEmergencia;
 
     ESP_LOGI(pConfig->tag, "Periodo de planificación: %lu ms", pConfig->periodo);
     ESP_LOGI(pConfig->tag, "Número inicial de activaciones: %lu", pConfig->numActivaciones);
@@ -207,6 +280,14 @@ void tareaControlDeposito(void* pParametros)
     /* Bucle de presentación de medias */
     bool continuar = true;
 
+    /* Prepara los parámetros de entrada para las funciones de condición de transferencia */
+    tareaControlDepositoParams_t pControlDepositoParams;
+    pControlDepositoParams.emergencia = 0;
+    pControlDepositoParams.nivelDeposito = NORMAL;
+    pControlDepositoParams.estadoDeposito = NORMAL;
+    pControlDepositoParams.estadoSist = pEstadoSist;
+    pControlDepositoParams.continuar = &continuar;
+
     while( continuar )
     {
         /* Espera a la siguiente activación */  
@@ -214,7 +295,12 @@ void tareaControlDeposito(void* pParametros)
         pConfig->numActivaciones++;
         ESP_LOGI(pConfig->tag, "Numero de activaciones: %lu", pConfig->numActivaciones);
 
-        /* Actualiza la máquina de estados en cada ejecución */
-        fsm_update (fsm_controlDeposito);
+        /* Comprueba el estado actual del sistema */
+        if ( !paradaEmergenciaLeer(pEmergencia, &pControlDepositoParams.emergencia) ) { continuar = false; }
+        if ( !estadoSistemaLeerNivel(pEstadoSist, &pControlDepositoParams.nivelDeposito) ) { continuar = false; }
+        if ( !estadoSistemaLeerDeposito(pEstadoSist, &pControlDepositoParams.estadoDeposito) ) { continuar = false; }
+
+        /* Actualiza la máquina de estados según el estado leído */
+        fsm_update (fsm_controlDeposito, (void*) &pControlDepositoParams);
     }
 }
