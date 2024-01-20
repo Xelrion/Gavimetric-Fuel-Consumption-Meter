@@ -1,8 +1,8 @@
 /***********************************************************************************************************
  * MÓDULO DE MONITORIZACIÓN DEL DEPÓSITO
  * Objeto cíclico: Cálculo de medidas de consumo
- * Lee el buffer de medidas y calcula el consumo medio por cada pareja
- * La decisión de calcular o no el consumo se realiza mediante una máquina de estados
+ * Lee el buffer de medidas y, si se cumplen las condiciones necesarias, calcula el consumo medio por cada pareja
+ * Envía las medidas de consumo al buffer de la consola o al buffer del sistema remoto, según el modo de funcionamiento
  ***********************************************************************************************************/
 
 #include <freertos/FreeRTOS.h>
@@ -13,8 +13,9 @@
 
 #include "myTaskConfig.h"
 #include "bufferCircular.h"
-#include "fsm.h"
 #include "estadoSistema.h"
+#include "configSistema.h"
+#include "paradaEmergencia.h"
 #include "calculaConsumo.h"
 
 /* Etiqueta para depuración */
@@ -52,28 +53,20 @@ double consumoHora( double medida1, double medida2, int periodo_ms )
     return (medida1 + medida2)/(periodo_ms*1000*3600);
 }
 
-/***********************************************************************************************************
- * Funciones de control sobre el timer para la espera de estabilización
- ***********************************************************************************************************/
-
-/* Comprueba si el timer ha vencido o no está activo */
-int  timer_expired(int* timer)
+/* Calcula una medida de consumo y la introduce en el buffer especificado */
+void calculoConsumo( bufferCircular_t* pSacaMedidas, bufferCircular_t* pEnviaConsumo, int periodo_medidas, bool* continuar)
 {
-    return (timer == 0);
-}
+    double medida1, medida2, consumo;
 
-/* Inicia el timer con el tiempo especificado en segundos
-El periodo de cálculo de consumo se corresponde al periodo de ejecución de la tarea. */
-void timer_start(int* timer, int tiempo_max_s, int periodo_ms)
-{
-    timer = (tiempo_max_s * 1000) / periodo_ms;
-}
+    /* Extrae las dos medidas más antiguas almacenadas en el buffer */
+    bufferCircularSaca(pSacaMedidas, &medida1);
+    bufferCircularSaca(pSacaMedidas, &medida2);
 
-/* Decrementa el timer si aún no ha llegado a 0 */
-void timer_next(int* timer)
-{
-    if (timer > 0) --timer;
-    ESP_LOGD(TAG, "Tiempo restante: %d", timer);
+    /* Calcula el consumo medio entre ellas */
+    consumo = consumoHora(medida1, medida2, periodo_medidas);
+
+    /* Introduce el consumo calculado en el buffer de envío */
+    if (!bufferCircularMete(pEnviaConsumo, consumo)) { continuar = false; }
 }
 
 /***********************************************************************************************************
@@ -81,23 +74,28 @@ void timer_next(int* timer)
  ***********************************************************************************************************/
 
 /* Configuración de la tarea de cálculo de medias */
-void tareaConsumoSet(tareaConsumoInfo_t* pTaskInfo, bufferCircular_t* pMedidas, bufferCircular_t* pConsumo, estadoSistema_t* pEstadoSist)
+void tareaConsumoSet(tareaConsumoInfo_t* pTaskInfo, bufferCircular_t* pMedidas, bufferCircular_t* pConsumoRemoto, bufferCircular_t* pConsumoConsola, estadoSistema_t* pEstadoSist, configSistema_t* pConfigSist, paradaEmergencia_t* pEmergencia)
 {
     pTaskInfo->pMedidas = pMedidas;
-    pTaskInfo->pConsumo = pConsumo;
+    pTaskInfo->pConsumoRemoto = pConsumoRemoto;
+    pTaskInfo->pConsumoConsola = pConsumoConsola;
     pTaskInfo->pEstadoSist = pEstadoSist;
+    pTaskInfo->pConfigSist = pConfigSist;
 }
 
-/* Punto de entrada de la tarea de cálculo de valores medios */
+/* Punto de entrada de la tarea de cálculo de consumo */
 void tareaConsumo(void* pParametros)
 {
     /* Estructuras para intercambio de información */
     /* Entre la tarea y la aplicación principal */
-    taskConfig_t* pConfig = ((taskInfo_t *)pParametros)->pConfig;
-    void*           pData = ((taskInfo_t *)pParametros)->pData;
-    bufferCircular_t*  pMedidas = ((tareaConsumoInfo_t*)pData)->pMedidas;
-    bufferCircular_t*  pConsumo = ((tareaConsumoInfo_t*)pData)->pConsumo;
-    estadoSistema_t* pEstadoSist = ((tareaConsumoInfo_t*)pData)->pEstadoSist;
+    taskConfig_t*             pConfig = ((taskInfo_t *)pParametros)->pConfig;
+    void*                       pData = ((taskInfo_t *)pParametros)->pData;
+    bufferCircular_t*        pMedidas = ((tareaConsumoInfo_t*)pData)->pMedidas;
+    bufferCircular_t*  pConsumoRemoto = ((tareaConsumoInfo_t*)pData)->pConsumoRemoto;
+    bufferCircular_t* pConsumoConsola = ((tareaConsumoInfo_t*)pData)->pConsumoConsola;
+    estadoSistema_t*      pEstadoSist = ((tareaConsumoInfo_t*)pData)->pEstadoSist;
+    configSistema_t*      pConfigSist = ((tareaConsumoInfo_t*)pData)->pConfigSist;
+    paradaEmergencia_t*   pEmergencia = ((tareaConsumoInfo_t*)pData)->pEmergencia;
 
     ESP_LOGD(pConfig->tag, "Periodo de planificación: %lu ms", pConfig->periodo);
     ESP_LOGD(pConfig->tag, "Número inicial de activaciones: %lu", pConfig->numActivaciones);
@@ -110,15 +108,18 @@ void tareaConsumo(void* pParametros)
 
     /* Parámetros de funcionamiento configurables */
     int periodo_medidas = 500;  // periodo de toma de medidas en ms
+    int periodo_medidas_old = periodo_medidas; // se utiliza para comprobar si ha cambiado el periodo de medidas en esta ejecución
 
     /* Estado del sistema */
     estadoSistemaComando_t comando = DESACTIVADA;
+    bool medidasActivas = false;
+    bool paradaEmergencia = false;
 
     /* Bucle de cálculo de consumo */
     bool continuar = true;
-    double medida1, medida2, consumo;
-    bool medida_puntual = true;    // comprueba si ya se ha tomado la medida solicitada en control manual puntual
+    bool medida_puntual = true;    // comprueba si ya se ha tomado la medida puntual solicitada en control manual
     bool periodo_medidas_modif = false; // si en esta ejecución se ha modificado el periodo de medidas, no se calcula el consumo para evitar datos erróneos
+    bool calculo_consumo_activo = false;    // indica si se cumplen todas las condiciones para calcular medidas de consumo en esta ejecución
 
     while( continuar )
     {
@@ -127,29 +128,47 @@ void tareaConsumo(void* pParametros)
         pConfig->numActivaciones++;
         ESP_LOGD(pConfig->tag, "Numero de activaciones: %lu", pConfig->numActivaciones);
 
-        /* Nota: comprobar los parámetros de tiempo de toma de medidas, presente
-        en el recurso compartido de configuración */
-        // Si se modifica el periodo de medidas, establecer periodo_medidas_modif a true
+        /* Comprueba si el periodo de toma de medidas ha cambiado en esta ejecución */
+        periodo_medidas_old = periodo_medidas;
+        if (!configSistemaLeerPeriodo(pConfigSist, &periodo_medidas)) { continuar = false; }
+        /* En caso afirmativo, no se calculará el consumo en esta ejecución para evitar utilizar datos erróneos del buffer */
+        if (periodo_medidas_old != periodo_medidas) { periodo_medidas_modif = true; }
+        else { periodo_medidas_modif = false; }
 
-        /* Nota: actualizar el estado de la máquina de estados */
+        /* Comprueba si el último comando de toma de medidas recibido es "medida puntual" */
+        if (!estadoSistemaLeerComando(pConfigSist, &comando)) { continuar = false; }
+        /* En caso afirmativo, establece la variable "medida_puntual" a 0 (aún no se ha tomado la medida solicitada) */
+        if (comando == MEDIDA_MANUAL_PUNTUAL) { medida_puntual = 0; }
+        /* En caso negativo, la establece a 1 */
+        else { medida_puntual = 1; }
+
+        /* Comprueba el comando activo de petición de medidas, la señal remota de petición y la espera de estabilización */
+        if (!estadoSistemaMedidasActivas(pEstadoSist, &medidasActivas)) { continuar = false; }
+        /* Comprueba el estado de emergencia */
+        if (!paradaEmergenciaLeer(pEmergencia, &paradaEmergencia)) { continuar = false; }
+        /* Si se cumplen todas las condiciones, se considera que el cálculo de medidas de consumo está habilitado en esta ejecución */
+        if (medidasActivas * !paradaEmergencia * !periodo_medidas_modif) { medidasActivas = true; }
+        else { medidasActivas = false; }
 
         /* Lee y calcula el consumo entre dos medidas, siempre que haya suficientes en el buffer */
-        while (medidasDisponibles(pMedidas) & !periodo_medidas_modif) {
+        /* Primer bucle: envía medidas al buffer de la consola (medición manual activa) */
+        while (medidasDisponibles(pMedidas) & medidasActivas & comando <= 1) {
 
-            /* Extrae las dos medidas más antiguas almacenadas en el buffer*/
-            bufferCircularSaca(pMedidas, &medida1);
-            bufferCircularSaca(pMedidas, &medida2);
+            calculoConsumo( pMedidas, pConsumoConsola, periodo_medidas, &continuar);
 
-            /* Calcula el consumo medio entre ellas */
-            consumo = consumoHora(medida1, medida2, periodo_medidas);
-
-            /* Introduce el consumo calculado en el buffer de consumo */
-            if (!bufferCircularMete(pConsumo, consumo)) {
-                continuar = false;
+            /* Si medida_puntual == false, se establece a true y se termina el bucle (ya se ha calculado la medida solicitada) */
+            if (medida_puntual == false)
+            {
+                medida_puntual = true;
+                break;
             }
-            ESP_LOGI(pConfig->tag, "Consumo/h: %f", consumo);
+        }
+        /* Segundo bucle: envía medidas al buffer del sistema remoto (medición automática activa) */
+        while (medidasDisponibles(pMedidas) & medidasActivas & comando == 2) {
 
-            /* Si medida_puntual == false, se establece a true y se termina el bucle (el sistema solo ha solicitado una medida) */
+            calculoConsumo( pMedidas, pConsumoRemoto, periodo_medidas, &continuar);
+
+            /* Si medida_puntual == false, se establece a true y se termina el bucle (ya se ha calculado la medida solicitada) */
             if (medida_puntual == false)
             {
                 medida_puntual = true;
@@ -157,6 +176,13 @@ void tareaConsumo(void* pParametros)
             }
         }
 
-        /* Nota: si el estado de la máquina es "espera", actualiza el timer */
+        /* Comprueba si el comando de lectura ha cambiado */
+        if (!estadoSistemaLeerComando(pConfigSist, &comando)) { continuar = false; }
+        /* Si el último comando de lectura sigue siendo "medida puntual" y ya se ha tomado la medida, el comando cambia a "desactivado" */
+        if (comando == MEDIDA_MANUAL_PUNTUAL & medida_puntual == true)
+        {
+            comando = DESACTIVADA;
+            if (!estadoSistemaEscribirComando(pConfigSist, &comando)) { continuar = false; }
+        }
     }
 }

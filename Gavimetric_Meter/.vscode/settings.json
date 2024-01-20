@@ -17,6 +17,7 @@
     "idf.flashType": "UART",
     "files.associations": {
         "informe.h": "c",
-        "buffercircular.h": "c"
+        "buffercircular.h": "c",
+        "comandosconsola.h": "c"
     }
 }

@@ -20,7 +20,7 @@
 const char* TAG = "medidasNivel";
 
 /***********************************************************************************************************
- * Funciones de la tarea
+ * Funciones de lectura de la báscula
  ***********************************************************************************************************/
 
 /* Función de petición de medidas a la báscula */
@@ -89,7 +89,7 @@ void tareaLectura(void* pParametros)
     /* Parámetros de funcionamiento configurables */
     int periodo_medidas = pConfig->periodo;  // periodo de toma de medidas en ms, inicialmente coincide con el periodo de la tarea
     int periodo_medidas_old = periodo_medidas;  // se utiliza para comprobar si ha cambiado el periodo de medidas en esta ejecución
-    int periodo_espera_estabilizacion = 5;  // periodo de espera de estabilización en s
+    double periodo_espera_estabilizacion = 5;  // periodo de espera de estabilización en s
 
     /* Estado del sistema */
     estadoSistemaEspera_t espera_estabilizacion = DESACTIVADA;
@@ -124,6 +124,9 @@ void tareaLectura(void* pParametros)
             if (!bufferCircularLimpia(pMedidas)) { continuar = false; }
         }
 
+        /* Actualiza el periodo de espera de estabilización */
+        if (!configSistemaLeerEspera(pConfigSist, &periodo_espera_estabilizacion)) { continuar = false; }
+
 
         /* Lectura de la medida de la báscula y comprobación de nivel*/
         medida = medida_bascula();
@@ -154,7 +157,7 @@ void tareaLectura(void* pParametros)
         /* Si el sistema de control del depósito acaba de iniciar la espera de estabilización, se inicia su timer*/
         if (espera_estabilizacion == INICIADA)
         {
-            timer_start(timer_espera_estabilizacion, periodo_espera_estabilizacion*1000, pConfig->periodo);
+            timer_start(timer_espera_estabilizacion, (int) periodo_espera_estabilizacion*1000, pConfig->periodo);
             espera_estabilizacion = DESACTIVADA;
             estadoSistemaEscribirEspera(pEstadoSist, EN_CURSO);
         }

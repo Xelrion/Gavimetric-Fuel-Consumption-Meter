@@ -5,7 +5,7 @@
 #include "estadoSistema.h"
 
 /* Información que necesita la tarea de control del depósito para funcionar */
-typedef struct _tareaConrtolDepositoInfo
+typedef struct _tareaControlDepositoInfo
 {
     estadoSistema_t* pEstadoSist;
 } tareaControlDepositoInfo_t;

@@ -1,2 +1,2 @@
-idf_component_register(SRCS "paradaEmergencia.c" "configSistema.c" "estadoSistema.c" "calculaConsumo.c" "medidasNivel.c" "controlDeposito.c" "fsm.c" "myTaskConfig.c" "bufferCircular.c" "main.c"
+idf_component_register(SRCS "comandosConsola.c" "paradaEmergencia.c" "configSistema.c" "estadoSistema.c" "calculaConsumo.c" "medidasNivel.c" "controlDeposito.c" "fsm.c" "myTaskConfig.c" "bufferCircular.c" "main.c"
                     INCLUDE_DIRS ".")

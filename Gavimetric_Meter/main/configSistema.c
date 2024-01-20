@@ -53,7 +53,7 @@ bool configSistemaLibera( configSistema_t* pConfigSist )
 }
 
 /* Lee el periodo de medidas */
-bool configSistemaLeerPeriodo( configSistema_t* pConfigSist, double* pPeriodoMedida )
+bool configSistemaLeerPeriodo( configSistema_t* pConfigSist, int* pPeriodoMedida )
 {
     if (xSemaphoreTake(pConfigSist->mutex, (TickType_t) 10) == pdTRUE)
     {
@@ -74,7 +74,7 @@ bool configSistemaLeerPeriodo( configSistema_t* pConfigSist, double* pPeriodoMed
 }
 
 /* Lee la espera de estabilización */
-bool configSistemaLeerEspera( configSistema_t* pConfigSist, int* pEspera )
+bool configSistemaLeerEspera( configSistema_t* pConfigSist, double* pEspera )
 {
     if (xSemaphoreTake(pConfigSist->mutex, (TickType_t) 10) == pdTRUE)
     {
@@ -95,7 +95,7 @@ bool configSistemaLeerEspera( configSistema_t* pConfigSist, int* pEspera )
 }
 
 /* Lee el consumo máximo de combustible */
-bool configSistemaLeerConsumoMax( configSistema_t* pConfigSist, int* pConsumoMax )
+bool configSistemaLeerConsumoMax( configSistema_t* pConfigSist, double* pConsumoMax )
 {
     if (xSemaphoreTake(pConfigSist->mutex, (TickType_t) 10) == pdTRUE)
     {
@@ -116,7 +116,7 @@ bool configSistemaLeerConsumoMax( configSistema_t* pConfigSist, int* pConsumoMax
 }
 
 /* Lee el nivel máximo de combustible */
-bool configSistemaLeerNivelMax( configSistema_t* pConfigSist, int* pNivelMax )
+bool configSistemaLeerNivelMax( configSistema_t* pConfigSist, double* pNivelMax )
 {
     if (xSemaphoreTake(pConfigSist->mutex, (TickType_t) 10) == pdTRUE)
     {
@@ -137,7 +137,7 @@ bool configSistemaLeerNivelMax( configSistema_t* pConfigSist, int* pNivelMax )
 }
 
 /* Lee el nivel mínimo de combustible */
-bool configSistemaLeerNivelMin( configSistema_t* pConfigSist, int* pNivelMin )
+bool configSistemaLeerNivelMin( configSistema_t* pConfigSist, double* pNivelMin )
 {
     if (xSemaphoreTake(pConfigSist->mutex, (TickType_t) 10) == pdTRUE)
     {
@@ -150,6 +150,111 @@ bool configSistemaLeerNivelMin( configSistema_t* pConfigSist, int* pNivelMin )
     {
         ESP_LOGE(pConfigSist->tag, "Fallo al intentar tomar mutex");
         ESP_LOGE(pConfigSist->tag, "para leer el nivel mínimo de combustible: %d", (pConfigSist->nivelMinimo));
+
+        pConfigSist->err = CONFIG_SIST_ERR_MUTEX;
+    }
+
+    return (pConfigSist->err == CONFIG_SIST_OK);
+}
+
+/* Modifica el periodo de medidas */
+bool configSistemaEscribirPeriodo( configSistema_t* pConfigSist, int pPeriodoMedida )
+{
+    if (xSemaphoreTake(pConfigSist->mutex, (TickType_t) 10) == pdTRUE)
+    {
+        pConfigSist->periodoMedida = pPeriodoMedida;
+        ESP_LOGD(pConfigSist->tag, "Periodo de medidas: %d", (pConfigSist->periodoMedida));
+        pConfigSist->err = CONFIG_SIST_OK;
+        xSemaphoreGive(pConfigSist->mutex);
+    }
+    else
+    {
+        ESP_LOGE(pConfigSist->tag, "Fallo al intentar tomar mutex");
+        ESP_LOGE(pConfigSist->tag, "para modificar el periodo de medidas: %d", (pConfigSist->periodoMedida));
+
+        pConfigSist->err = CONFIG_SIST_ERR_MUTEX;
+    }
+
+    return (pConfigSist->err == CONFIG_SIST_OK);
+}
+
+/* Modifica la espera de estabilización */
+bool configSistemaEscribirEspera( configSistema_t* pConfigSist, double pEspera )
+{
+    if (xSemaphoreTake(pConfigSist->mutex, (TickType_t) 10) == pdTRUE)
+    {
+        pConfigSist->esperaEstabilizacion = pEspera;
+        ESP_LOGD(pConfigSist->tag, "Tiempo de espera: %d", (pConfigSist->esperaEstabilizacion));
+        pConfigSist->err = CONFIG_SIST_OK;
+        xSemaphoreGive(pConfigSist->mutex);
+    }
+    else
+    {
+        ESP_LOGE(pConfigSist->tag, "Fallo al intentar tomar mutex");
+        ESP_LOGE(pConfigSist->tag, "para modificar el tiempo de espera de estabilización: %d", (pConfigSist->esperaEstabilizacion));
+
+        pConfigSist->err = CONFIG_SIST_ERR_MUTEX;
+    }
+
+    return (pConfigSist->err == CONFIG_SIST_OK);
+}
+
+/* Modifica el consumo máximo de combustible */
+bool configSistemaEscribirConsumoMax( configSistema_t* pConfigSist, double pConsumoMax )
+{
+    if (xSemaphoreTake(pConfigSist->mutex, (TickType_t) 10) == pdTRUE)
+    {
+        pConfigSist->consumoMaximo = pConsumoMax;
+        ESP_LOGD(pConfigSist->tag, "Consumo máximo: %d", (pConfigSist->consumoMaximo));
+        pConfigSist->err = CONFIG_SIST_OK;
+        xSemaphoreGive(pConfigSist->mutex);
+    }
+    else
+    {
+        ESP_LOGE(pConfigSist->tag, "Fallo al intentar tomar mutex");
+        ESP_LOGE(pConfigSist->tag, "para modificar el consumo máximo de combustible: %d", (pConfigSist->consumoMaximo));
+
+        pConfigSist->err = CONFIG_SIST_ERR_MUTEX;
+    }
+
+    return (pConfigSist->err == CONFIG_SIST_OK);
+}
+
+/* Modifica el nivel máximo de combustible */
+bool configSistemaEscribirNivelMax( configSistema_t* pConfigSist, double pNivelMax )
+{
+    if (xSemaphoreTake(pConfigSist->mutex, (TickType_t) 10) == pdTRUE)
+    {
+        pConfigSist->nivelMaximo = pNivelMax;
+        ESP_LOGD(pConfigSist->tag, "Nivel máximo: %d", (pConfigSist->nivelMaximo));
+        pConfigSist->err = CONFIG_SIST_OK;
+        xSemaphoreGive(pConfigSist->mutex);
+    }
+    else
+    {
+        ESP_LOGE(pConfigSist->tag, "Fallo al intentar tomar mutex");
+        ESP_LOGE(pConfigSist->tag, "para modificar el nivel máximo de combustible: %d", (pConfigSist->nivelMaximo));
+
+        pConfigSist->err = CONFIG_SIST_ERR_MUTEX;
+    }
+
+    return (pConfigSist->err == CONFIG_SIST_OK);
+}
+
+/* Modifica el nivel mínimo de combustible */
+bool configSistemaEscribirNivelMin( configSistema_t* pConfigSist, double pNivelMin )
+{
+    if (xSemaphoreTake(pConfigSist->mutex, (TickType_t) 10) == pdTRUE)
+    {
+        pConfigSist->nivelMinimo = pNivelMin;
+        ESP_LOGD(pConfigSist->tag, "Nivel mínimo: %d", (pConfigSist->nivelMinimo));
+        pConfigSist->err = CONFIG_SIST_OK;
+        xSemaphoreGive(pConfigSist->mutex);
+    }
+    else
+    {
+        ESP_LOGE(pConfigSist->tag, "Fallo al intentar tomar mutex");
+        ESP_LOGE(pConfigSist->tag, "para modificar el nivel mínimo de combustible: %d", (pConfigSist->nivelMinimo));
 
         pConfigSist->err = CONFIG_SIST_ERR_MUTEX;
     }

@@ -111,6 +111,27 @@ bool estadoSistemaLeerNivel( estadoSistema_t* pEstadoSist, estadoSistemaNivel_t*
     return (pEstadoSist->err == EST_SIST_OK);
 }
 
+/* Lee el estado actual del depósito */
+bool estadoSistemaLeerDeposito( estadoSistema_t* pEstadoSist, estadoSistemaDeposito_t* pDeposito )
+{
+    if (xSemaphoreTake(pEstadoSist->mutex, (TickType_t) 10) == pdTRUE)
+    {
+        *pDeposito = pEstadoSist->estadoDeposito;
+        ESP_LOGD(pEstadoSist->tag, "Estado del depósito: %d", (pEstadoSist->estadoDeposito));
+        pEstadoSist->err = EST_SIST_OK;
+        xSemaphoreGive(pEstadoSist->mutex);
+    }
+    else
+    {
+        ESP_LOGE(pEstadoSist->tag, "Fallo al intentar tomar mutex");
+        ESP_LOGE(pEstadoSist->tag, "para leer el estado del depósito: %d", (pEstadoSist->estadoDeposito));
+
+        pEstadoSist->err = EST_SIST_ERR_MUTEX;
+    }
+
+    return (pEstadoSist->err == EST_SIST_OK);
+}
+
 /* Lee el estado de la petición de medidas remotas */
 bool estadoSistemaLeerPeticion( estadoSistema_t* pEstadoSist, bool* pPeticion )
 {
@@ -188,6 +209,27 @@ bool estadoSistemaEscribirNivel( estadoSistema_t* pEstadoSist, estadoSistemaNive
     {
         ESP_LOGE(pEstadoSist->tag, "Fallo al intentar tomar mutex");
         ESP_LOGE(pEstadoSist->tag, "para modificar el aviso de nivel del depósito: %d", (pEstadoSist->nivelDeposito));
+
+        pEstadoSist->err = EST_SIST_ERR_MUTEX;
+    }
+
+    return (pEstadoSist->err == EST_SIST_OK);
+}
+
+/* Modifica el aviso de límite de nivel del depósito */
+bool estadoSistemaEscribirDeposito( estadoSistema_t* pEstadoSist, estadoSistemaDeposito_t pDeposito )
+{
+    if (xSemaphoreTake(pEstadoSist->mutex, (TickType_t) 10) == pdTRUE)
+    {
+        pEstadoSist->estadoDeposito = pDeposito;
+        ESP_LOGD(pEstadoSist->tag, "Estado del depósito: %d", (pEstadoSist->estadoDeposito));
+        pEstadoSist->err = EST_SIST_OK;
+        xSemaphoreGive(pEstadoSist->mutex);
+    }
+    else
+    {
+        ESP_LOGE(pEstadoSist->tag, "Fallo al intentar tomar mutex");
+        ESP_LOGE(pEstadoSist->tag, "para modificar el estado del depósito: %d", (pEstadoSist->estadoDeposito));
 
         pEstadoSist->err = EST_SIST_ERR_MUTEX;
     }

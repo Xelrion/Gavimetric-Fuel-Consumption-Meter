@@ -52,7 +52,7 @@ bool paradaEmergenciaActivar( paradaEmergencia_t* pEmergencia )
     if (xSemaphoreTake(pEmergencia->mutex, (TickType_t) 10) == pdTRUE)
     {
         pEmergencia->paradaEmergencia = true;
-        ESP_LOGD(pEmergencia->tag, "Estado parada emergencia: %d", (pEmergencia->paradaEmergencia);
+        ESP_LOGD(pEmergencia->tag, "Estado parada emergencia: %d", (pEmergencia->paradaEmergencia));
         pEmergencia->err = EMERGENCIA_OK;
         xSemaphoreGive(pEmergencia->mutex);
     }
@@ -72,7 +72,7 @@ bool paradaEmergenciaDesactivar( paradaEmergencia_t* pEmergencia )
     if (xSemaphoreTake(pEmergencia->mutex, (TickType_t) 10) == pdTRUE)
     {
         pEmergencia->paradaEmergencia = false;
-        ESP_LOGD(pEmergencia->tag, "Estado parada emergencia: %d", (pEmergencia->paradaEmergencia);
+        ESP_LOGD(pEmergencia->tag, "Estado parada emergencia: %d", (pEmergencia->paradaEmergencia));
         pEmergencia->err = EMERGENCIA_OK;
         xSemaphoreGive(pEmergencia->mutex);
     }
