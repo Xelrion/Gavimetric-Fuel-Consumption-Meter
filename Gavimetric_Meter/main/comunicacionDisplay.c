@@ -62,7 +62,7 @@ void tareaComunicacionDisplaySet(tareaComunicacionDisplayInfo_t* pTaskInfo, buff
 }
 
 /* Punto de entrada de la tarea de comunicación con el display */
-void tareaComandosConsola(void* pParametros)
+void tareaComunicacionDisplay(void* pParametros)
 {
     /* Estructuras para intercambio de información */
     /* Entre la tarea y la aplicación principal */
@@ -87,7 +87,6 @@ void tareaComandosConsola(void* pParametros)
 
     /* Bucle de comunicación con el display */
     bool continuar = true;
-    bool bufferVacio = true;
     double medidaConsumo = 0;
 
     while( continuar )
