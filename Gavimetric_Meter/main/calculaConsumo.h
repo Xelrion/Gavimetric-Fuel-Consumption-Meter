@@ -5,7 +5,6 @@
 #include "bufferCircular.h"
 #include "estadoSistema.h"
 #include "configSistema.h"
-#include "paradaEmergencia.h"
 
 /* Información que necesita la tarea de cálculo de medias para funcionar */
 typedef struct _tareaConsumoInfo
@@ -15,13 +14,12 @@ typedef struct _tareaConsumoInfo
     bufferCircular_t* pConsumoConsola;
     estadoSistema_t* pEstadoSist;
     configSistema_t* pConfigSist;
-    paradaEmergencia_t* pEmergencia;
 } tareaConsumoInfo_t;
 
 /* Punto de entrada a la tarea */
 void tareaConsumo(void* pvParametros);
 
 /* Configuración de la tarea de lectura */
-void tareaConsumoSet(tareaConsumoInfo_t* pTaskInfo, bufferCircular_t* pMedidas, bufferCircular_t* pConsumoRemoto, bufferCircular_t* pConsumoConsola, estadoSistema_t* pEstadoSist, configSistema_t* pConfigSist, paradaEmergencia_t* pEmergencia);
+void tareaConsumoSet(tareaConsumoInfo_t* pTaskInfo, bufferCircular_t* pMedidas, bufferCircular_t* pConsumoRemoto, bufferCircular_t* pConsumoConsola, estadoSistema_t* pEstadoSist, configSistema_t* pConfigSist);
 
 #endif

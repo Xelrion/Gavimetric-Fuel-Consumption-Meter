@@ -15,7 +15,6 @@
 #include "bufferCircular.h"
 #include "estadoSistema.h"
 #include "configSistema.h"
-#include "paradaEmergencia.h"
 #include "calculaConsumo.h"
 
 /* Etiqueta para depuración */
@@ -74,7 +73,7 @@ void calculoConsumo( bufferCircular_t* pSacaMedidas, bufferCircular_t* pEnviaCon
  ***********************************************************************************************************/
 
 /* Configuración de la tarea de cálculo de medias */
-void tareaConsumoSet(tareaConsumoInfo_t* pTaskInfo, bufferCircular_t* pMedidas, bufferCircular_t* pConsumoRemoto, bufferCircular_t* pConsumoConsola, estadoSistema_t* pEstadoSist, configSistema_t* pConfigSist, paradaEmergencia_t* pEmergencia)
+void tareaConsumoSet(tareaConsumoInfo_t* pTaskInfo, bufferCircular_t* pMedidas, bufferCircular_t* pConsumoRemoto, bufferCircular_t* pConsumoConsola, estadoSistema_t* pEstadoSist, configSistema_t* pConfigSist)
 {
     pTaskInfo->pMedidas = pMedidas;
     pTaskInfo->pConsumoRemoto = pConsumoRemoto;
@@ -95,7 +94,6 @@ void tareaConsumo(void* pParametros)
     bufferCircular_t* pConsumoConsola = ((tareaConsumoInfo_t*)pData)->pConsumoConsola;
     estadoSistema_t*      pEstadoSist = ((tareaConsumoInfo_t*)pData)->pEstadoSist;
     configSistema_t*      pConfigSist = ((tareaConsumoInfo_t*)pData)->pConfigSist;
-    paradaEmergencia_t*   pEmergencia = ((tareaConsumoInfo_t*)pData)->pEmergencia;
 
     ESP_LOGD(pConfig->tag, "Periodo de planificación: %lu ms", pConfig->periodo);
     ESP_LOGD(pConfig->tag, "Número inicial de activaciones: %lu", pConfig->numActivaciones);
@@ -112,14 +110,10 @@ void tareaConsumo(void* pParametros)
 
     /* Estado del sistema */
     estadoSistemaComando_t comando = DESACTIVADA;
-    bool medidasActivas = false;
-    bool paradaEmergencia = false;
 
     /* Bucle de cálculo de consumo */
     bool continuar = true;
-    bool medida_puntual = true;    // comprueba si ya se ha tomado la medida puntual solicitada en control manual
     bool periodo_medidas_modif = false; // si en esta ejecución se ha modificado el periodo de medidas, no se calcula el consumo para evitar datos erróneos
-    bool calculo_consumo_activo = false;    // indica si se cumplen todas las condiciones para calcular medidas de consumo en esta ejecución
 
     while( continuar )
     {
@@ -128,61 +122,33 @@ void tareaConsumo(void* pParametros)
         pConfig->numActivaciones++;
         ESP_LOGD(pConfig->tag, "Numero de activaciones: %lu", pConfig->numActivaciones);
 
+        /* ACTUALIZACIÓN DEL PERIODO CONFIGURABLE DE TOMA DE MEDIDAS */
         /* Comprueba si el periodo de toma de medidas ha cambiado en esta ejecución */
         periodo_medidas_old = periodo_medidas;
         if (!configSistemaLeerPeriodo(pConfigSist, &periodo_medidas)) { continuar = false; }
         /* En caso afirmativo, no se calculará el consumo en esta ejecución para evitar utilizar datos erróneos del buffer */
-        if (periodo_medidas_old != periodo_medidas) { periodo_medidas_modif = true; }
+        /* Además, limpiará las medidas de consumo que aún pueda haber en el buffer de la consola o del sistema remoto */
+        if (periodo_medidas_old != periodo_medidas)
+        {
+            periodo_medidas_modif = true;
+            if( !bufferCircularLimpia(pConsumoConsola) ) { continuar = false; }
+            if( !bufferCircularLimpia(pConsumoRemoto) ) { continuar = false; }
+        }
         else { periodo_medidas_modif = false; }
 
-        /* Comprueba si el último comando de toma de medidas recibido es "medida puntual" */
-        if (!estadoSistemaLeerComando(pConfigSist, &comando)) { continuar = false; }
-        /* En caso afirmativo, establece la variable "medida_puntual" a 0 (aún no se ha tomado la medida solicitada) */
-        if (comando == MEDIDA_MANUAL_PUNTUAL) { medida_puntual = 0; }
-        /* En caso negativo, la establece a 1 */
-        else { medida_puntual = 1; }
-
-        /* Comprueba el comando activo de petición de medidas, la señal remota de petición y la espera de estabilización */
-        if (!estadoSistemaMedidasActivas(pEstadoSist, &medidasActivas)) { continuar = false; }
-        /* Comprueba el estado de emergencia */
-        if (!paradaEmergenciaLeer(pEmergencia, &paradaEmergencia)) { continuar = false; }
-        /* Si se cumplen todas las condiciones, se considera que el cálculo de medidas de consumo está habilitado en esta ejecución */
-        if (medidasActivas * !paradaEmergencia * !periodo_medidas_modif) { medidasActivas = true; }
-        else { medidasActivas = false; }
-
+        /* CÁLCULO DE MEDIDAS DE CONSUMO */
+        /* Comprueba el comando actual de petición de medidas */
+        if (!estadoSistemaLeerComando(pEstadoSist, &comando)) { continuar = false; }
         /* Lee y calcula el consumo entre dos medidas, siempre que haya suficientes en el buffer */
-        /* Primer bucle: envía medidas al buffer de la consola (medición manual activa) */
-        while (medidasDisponibles(pMedidas) & medidasActivas & comando <= 1) {
-
-            calculoConsumo( pMedidas, pConsumoConsola, periodo_medidas, &continuar);
-
-            /* Si medida_puntual == false, se establece a true y se termina el bucle (ya se ha calculado la medida solicitada) */
-            if (medida_puntual == false)
-            {
-                medida_puntual = true;
-                break;
-            }
-        }
-        /* Segundo bucle: envía medidas al buffer del sistema remoto (medición automática activa) */
-        while (medidasDisponibles(pMedidas) & medidasActivas & comando == 2) {
-
-            calculoConsumo( pMedidas, pConsumoRemoto, periodo_medidas, &continuar);
-
-            /* Si medida_puntual == false, se establece a true y se termina el bucle (ya se ha calculado la medida solicitada) */
-            if (medida_puntual == false)
-            {
-                medida_puntual = true;
-                break;
-            }
-        }
-
-        /* Comprueba si el comando de lectura ha cambiado */
-        if (!estadoSistemaLeerComando(pConfigSist, &comando)) { continuar = false; }
-        /* Si el último comando de lectura sigue siendo "medida puntual" y ya se ha tomado la medida, el comando cambia a "desactivado" */
-        if (comando == MEDIDA_MANUAL_PUNTUAL & medida_puntual == true)
+        /* Primer bucle: envía medidas al buffer de la consola (modo manual) */
+        while (medidasDisponibles(pMedidas) & (comando == MEDIDA_MANUAL_PUNTUAL || comando == MEDIDA_MANUAL_CONTINUADA || comando == MEDIDA_OFF))
         {
-            comando = DESACTIVADA;
-            if (!estadoSistemaEscribirComando(pConfigSist, &comando)) { continuar = false; }
+            calculoConsumo( pMedidas, pConsumoConsola, periodo_medidas, &continuar);
+        }
+        /* Segundo bucle: envía medidas al buffer del sistema remoto (modo remoto) */
+        while (medidasDisponibles(pMedidas) && comando == MEDIDA_REMOTO)
+        {
+            calculoConsumo( pMedidas, pConsumoRemoto, periodo_medidas, &continuar);
         }
     }
 }

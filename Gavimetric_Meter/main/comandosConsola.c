@@ -38,7 +38,7 @@ void lectura_comando( comandosConsola_t* comando, double* valor)
  ***********************************************************************************************************/
 
 /* Configuración de la tarea de lectura de comandos */
-void tareaMedidasNivelSet(tareaComandosConsolaInfo_t* pTaskInfo, estadoSistema_t* pEstadoSist, configSistema_t* pConfigSist, paradaEmergencia_t* pEmergencia)
+void tareaComandosConsolaSet(tareaComandosConsolaInfo_t* pTaskInfo, estadoSistema_t* pEstadoSist, configSistema_t* pConfigSist, paradaEmergencia_t* pEmergencia)
 {
     pTaskInfo->pEstadoSist = pEstadoSist;
     pTaskInfo->pConfigSist = pConfigSist;
@@ -46,7 +46,7 @@ void tareaMedidasNivelSet(tareaComandosConsolaInfo_t* pTaskInfo, estadoSistema_t
 }
 
 /* Punto de entrada de la tarea de lectura de comandos */
-void tareaLectura(void* pParametros)
+void tareaComandosConsola(void* pParametros)
 {
     /* Estructuras para intercambio de información */
     /* Entre la tarea y la aplicación principal */
@@ -73,7 +73,7 @@ void tareaLectura(void* pParametros)
     comandosConsola_t comando = -1;   // comando recibido desde la consola
     double valor = 0;   // valor asociado a los comandos de configuración de parámetros
 
-    /* Bucle de toma de medidas */
+    /* Bucle de recepción de comandos */
     bool continuar = true;
     bool modo_manual = false;   // estado interno: establece comunicación con la consola de control (manual) o con el sistema remoto (automático)
 
@@ -99,10 +99,6 @@ void tareaLectura(void* pParametros)
         {
         case CONMUTAR_ESTADO:
             modo_manual = !modo_manual;
-            break;
-
-        case INICIAR_PARADA_EMERGENCIA:
-            paradaEmergenciaActivar(pEmergencia);
             break;
 
         case DETENER_PARADA_EMERGENCIA:

@@ -69,10 +69,10 @@ typedef struct _estadoSistema
     /* Aviso de límite de nivel del depósito */
     estadoSistemaNivel_t nivelDeposito;
 
-    /* Estadodel depósito */
+    /* Estado del depósito */
     estadoSistemaDeposito_t estadoDeposito;
 
-    /* Estado de señal de petición de medidas remotas*/
+    /* Estado de señal de petición de medidas remotas */
     bool peticionMedidas;
 
     /* Código de error devuelto por la última operación */
@@ -99,7 +99,7 @@ bool estadoSistemaLeerNivel( estadoSistema_t* pEstadoSist, estadoSistemaNivel_t*
 bool estadoSistemaLeerDeposito( estadoSistema_t* pEstadoSist, estadoSistemaDeposito_t* pDeposito );
 
 /* Lee el estado de la petición de medidas remotas */
-bool estadoSistemaLeerPeticion( estadoSistema_t* pEstadoSist, bool* pPeticion );
+bool estadoSistemaLeerPeticion( estadoSistema_t* pEstadoSist );
 
 /* Modifica el estado del comando */
 bool estadoSistemaEscribirComando( estadoSistema_t* pEstadoSist, estadoSistemaComando_t pComando );
@@ -112,8 +112,5 @@ bool estadoSistemaEscribirNivel( estadoSistema_t* pEstadoSist, estadoSistemaNive
 
 /* Modifica el aviso de límite de nivel del depósito */
 bool estadoSistemaEscribirDeposito( estadoSistema_t* pEstadoSist, estadoSistemaDeposito_t pDeposito );
-
-/* Comprueba si la toma de medidas se puede o no hacer actualmente */
-bool estadoSistemaMedidasActivas( estadoSistema_t* pEstadoSist, bool* pMedidaActiva );
 
 #endif

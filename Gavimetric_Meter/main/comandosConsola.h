@@ -10,7 +10,6 @@
 typedef enum _comandosConsola
 {
     CONMUTAR_ESTADO,
-    INICIAR_PARADA_EMERGENCIA,
     DETENER_PARADA_EMERGENCIA,
     INICIAR_MEDIDA_CONTINUADA,
     DETENER_MEDIDA_CONTINUADA,
@@ -35,8 +34,8 @@ typedef struct _tareaComandosConsolaInfo
 } tareaComandosConsolaInfo_t;
 
 /* Punto de entrada a la tarea */
-void tareaMedidasNivel(void* pvParametros);
+void tareaComandosConsola(void* pvParametros);
 
 /* Configuración de la tarea de toma de medidas */
-void tareaMedidasNivelSet(tareaComandosConsolaInfo_t* pTaskInfo, estadoSistema_t* pEstadoSist, configSistema_t* pConfigSist, paradaEmergencia_t* pEmergencia);
+void tareaComandosConsolaSet(tareaComandosConsolaInfo_t* pTaskInfo, estadoSistema_t* pEstadoSist, configSistema_t* pConfigSist, paradaEmergencia_t* pEmergencia);
 #endif

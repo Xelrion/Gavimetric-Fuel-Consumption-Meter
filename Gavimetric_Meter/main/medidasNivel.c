@@ -93,7 +93,7 @@ void tareaLectura(void* pParametros)
 
     /* Estado del sistema */
     estadoSistemaEspera_t espera_estabilizacion = DESACTIVADA;
-    bool medidasActivas = false;
+    estadoSistemaDeposito_t estado_deposito = NORMAL;
     bool paradaEmergencia = false;
 
     /* Límites de nivel de depósito */
@@ -114,6 +114,8 @@ void tareaLectura(void* pParametros)
         pConfig->numActivaciones++;
         ESP_LOGD(pConfig->tag, "Numero de activaciones: %lu", pConfig->numActivaciones);
 
+
+        /* ACTUALIZACIÓN DEL PERIODO CONFIGURABLE DE TOMA DE MEDIDAS */
         /* Comprueba si el periodo de toma de medidas ha cambiado en esta ejecución */
         periodo_medidas_old = periodo_medidas;
         if (!configSistemaLeerPeriodo(pConfigSist, &periodo_medidas)) { continuar = false; }
@@ -123,31 +125,37 @@ void tareaLectura(void* pParametros)
             timer_start(timer_periodo_medidas, periodo_medidas, pConfig->periodo);
             if (!bufferCircularLimpia(pMedidas)) { continuar = false; }
         }
-
         /* Actualiza el periodo de espera de estabilización */
         if (!configSistemaLeerEspera(pConfigSist, &periodo_espera_estabilizacion)) { continuar = false; }
 
 
-        /* Lectura de la medida de la báscula y comprobación de nivel*/
-        medida = medida_bascula();
-        /* Comprueba si el valor medido supera el máximo o el mínimo */
-        if (!configSistemaComprobarNivel(pConfigSist, medida, &nivelMaximo, &nivelMinimo)) { continuar = false; }
-        /* Actualiza el estado del sistema en función del resultado de la comprobación*/
-        if (nivelMaximo)
+        /* COMPROBACIÓN DE NIVEL MÁXIMO Y MÍNIMO DEL DEPÓSITO*/
+        /* Comprueba si la parada de emergencia se encuentra activa */
+        if (!paradaEmergenciaLeer(pEmergencia, &paradaEmergencia)) { continuar = false; }
+        /* Lectura de la medida de la báscula y comprobación de nivel */
+        if (!paradaEmergencia)
         {
-            if (!estadoSistemaEscribirNivel(pConfigSist, MAXIMO)) { continuar = false; }
-        }
-        if (nivelMinimo)
-        {
-            if (!estadoSistemaEscribirNivel(pConfigSist, MINIMO)) { continuar = false; }
-        }
-        if (!nivelMaximo + !nivelMinimo)
-        {
-            if (!estadoSistemaEscribirNivel(pConfigSist, NORMAL)) { continuar = false; }
+            medida = medida_bascula();
+            /* Comprueba si el valor medido supera el máximo o el mínimo */
+            if (!configSistemaComprobarNivel(pConfigSist, medida, &nivelMaximo, &nivelMinimo)) { continuar = false; }
+            /* Actualiza el estado del sistema en función del resultado de la comprobación*/
+            if (nivelMaximo)
+            {
+                if (!estadoSistemaEscribirNivel(pConfigSist, MAXIMO)) { continuar = false; }
+            }
+            if (nivelMinimo)
+            {
+                if (!estadoSistemaEscribirNivel(pConfigSist, MINIMO)) { continuar = false; }
+            }
+            if (!nivelMaximo + !nivelMinimo)
+            {
+                if (!estadoSistemaEscribirNivel(pConfigSist, NORMAL)) { continuar = false; }
+            }
         }
 
-        /* Actualización de timers y escritura de medidas en el buffer compartido */
-        /* Si la espera de estabilización está activa y el timer expira, se desactiva */
+
+        /* INICIALIZACIÓN DEL TIMER DE ESPERA DE ESTABILIZACIÓN */
+        /* Si la espera de estabilización está activa y acaba de expirar, se desactiva */
         estadoSistemaLeerEspera(pEstadoSist, &espera_estabilizacion);
         if (espera_estabilizacion == EN_CURSO & timer_expired(timer_espera_estabilizacion))
         {
@@ -162,21 +170,23 @@ void tareaLectura(void* pParametros)
             estadoSistemaEscribirEspera(pEstadoSist, EN_CURSO);
         }
 
-        /* Comprueba el comando activo de petición de medidas, la señal remota de petición y la espera de estabilización*/
-        if (!estadoSistemaMedidasActivas(pEstadoSist, &medidasActivas)) { continuar = false; }
-        /* Comprueba el estado de emergencia */
-        if (!paradaEmergenciaLeer(pEmergencia, &paradaEmergencia)) { continuar = false; }
+
+        /* ENVÍO DE MEDIDAS AL BUFFER */
+        /* Comprueba el estado del depósito */
+        if ( !estadoSistemaLeerDeposito(pEstadoSist, &estado_deposito )) { continuar = false; }
         /* Si se cumplen todas las condiciones y el periodo de toma de medidas ha finalizado, se envía la medida */
-        if (medidasActivas * !paradaEmergencia * timer_expired(timer_periodo_medidas))
+        if (!paradaEmergencia * timer_expired(timer_periodo_medidas) * (estado_deposito == NORMAL))
         {
             if (!bufferCircularMete(pMedidas, medida)) { continuar = false; }
         }
-        /* Si no se cumplen las condiciones de toma de medidas, se borran las que tenga el buffer ya que considerarán desactualizadas */
-        if (!medidasActivas + paradaEmergencia)
+        /* Si no se cumplen, se limpia el buffer para eliminar medidas desactualizadas */
+        if (paradaEmergencia + (estado_deposito != NORMAL))
         {
             if (!bufferCircularLimpia(pMedidas)) { continuar = false; }
         }
 
+
+        /* ACTUALIZACIÓN DEL TIMER DE ESPERA DE ESTABILIZACIÓN Y DE PERIODO DE TOMA DE MEDIDAS*/
         /* Actualiza el timer de periodo de medidas*/
         timer_next(&timer_periodo_medidas);
         /* Actualiza el timer de espera de estabilización */
