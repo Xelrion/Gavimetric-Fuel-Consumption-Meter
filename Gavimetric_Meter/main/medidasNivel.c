@@ -35,7 +35,7 @@ double medida_bascula()
  ***********************************************************************************************************/
 
 /* Comprueba si el timer ha vencido o no está activo */
-int  timer_expired(int* timer)
+int  timer_expired(int timer)
 {
     return (timer == 0);
 }
@@ -122,7 +122,7 @@ void tareaMedidasNivel(void* pParametros)
         /* En caso afirmativo, inicia el nuevo timer de toma de medidas y limpia el buffer de medidas */
         if (periodo_medidas_old != periodo_medidas)
         {
-            timer_start(timer_periodo_medidas, periodo_medidas, pConfig->periodo);
+            timer_start(&timer_periodo_medidas, periodo_medidas, pConfig->periodo);
             if (!bufferCircularLimpia(pMedidas)) { continuar = false; }
         }
         /* Actualiza el periodo de espera de estabilización */
@@ -136,20 +136,21 @@ void tareaMedidasNivel(void* pParametros)
         if (!paradaEmergencia)
         {
             medida = medida_bascula();
+            ESP_LOGI(pConfig->tag, "Lectura de pesaje: %f", medida);
             /* Comprueba si el valor medido supera el máximo o el mínimo */
             if (!configSistemaComprobarNivel(pConfigSist, medida, &nivelMaximo, &nivelMinimo)) { continuar = false; }
             /* Actualiza el estado del sistema en función del resultado de la comprobación*/
             if (nivelMaximo)
             {
-                if (!estadoSistemaEscribirNivel(pConfigSist, NIVEL_MAXIMO)) { continuar = false; }
+                if (!estadoSistemaEscribirNivel(pEstadoSist, NIVEL_MAXIMO)) { continuar = false; }
             }
             if (nivelMinimo)
             {
-                if (!estadoSistemaEscribirNivel(pConfigSist, NIVEL_MINIMO)) { continuar = false; }
+                if (!estadoSistemaEscribirNivel(pEstadoSist, NIVEL_MINIMO)) { continuar = false; }
             }
             if (!nivelMaximo + !nivelMinimo)
             {
-                if (!estadoSistemaEscribirNivel(pConfigSist, NIVEL_NORMAL)) { continuar = false; }
+                if (!estadoSistemaEscribirNivel(pEstadoSist, NIVEL_NORMAL)) { continuar = false; }
             }
         }
 
@@ -165,7 +166,7 @@ void tareaMedidasNivel(void* pParametros)
         /* Si el sistema de control del depósito acaba de iniciar la espera de estabilización, se inicia su timer*/
         if (espera_estabilizacion == INICIADA)
         {
-            timer_start(timer_espera_estabilizacion, (int) periodo_espera_estabilizacion*1000, pConfig->periodo);
+            timer_start(&timer_espera_estabilizacion, (int) periodo_espera_estabilizacion*1000, pConfig->periodo);
             espera_estabilizacion = DESACTIVADA;
             estadoSistemaEscribirEspera(pEstadoSist, EN_CURSO);
         }

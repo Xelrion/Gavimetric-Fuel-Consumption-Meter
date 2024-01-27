@@ -44,7 +44,7 @@ static const char* TSKCONTROLDEP_TAG = "ControlDeposito";
 #define TSKCONTROLDEP_PRIORIDAD    7
 
 static const char* TSKMEDIDASNIV_TAG = "MedidasNivel";
-#define TSKMEDIDASNIV_PERIODO_MS 2500
+#define TSKMEDIDASNIV_PERIODO_MS 500
 #define TSKMEDIDASNIV_STACK_WD  2048
 #define TSKMEDIDASNIV_PRIORIDAD    6
 
