@@ -7,7 +7,7 @@
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
 
-#define LOG_LOCAL_LEVEL ESP_LOG_NONE
+#define LOG_LOCAL_LEVEL ESP_LOG_INFO
 #include "esp_log.h"
 
 #include "bufferCircular.h"
@@ -175,6 +175,7 @@ void tareaMedidasNivel(void* pParametros)
         /* ENVÍO DE MEDIDAS AL BUFFER */
         /* Comprueba el estado del depósito */
         if ( !estadoSistemaLeerDeposito(pEstadoSist, &estado_deposito )) { continuar = false; }
+        ESP_LOGI(pConfig->tag, "Timer periodo de medidas: %d", timer_periodo_medidas);
         /* Si se cumplen todas las condiciones y el periodo de toma de medidas ha finalizado, se envía la medida */
         if (!paradaEmergencia && timer_expired(timer_periodo_medidas) && (estado_deposito == DEPOSITO_NORMAL))
         {

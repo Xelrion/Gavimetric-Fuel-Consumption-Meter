@@ -293,7 +293,7 @@ void tareaControlDeposito(void* pParametros)
         /* Espera a la siguiente activación */  
         xTaskDelayUntil(&activacionPrevia, periodo);
         pConfig->numActivaciones++;
-        ESP_LOGI(pConfig->tag, "Numero de activaciones: %lu", pConfig->numActivaciones);
+        ESP_LOGD(pConfig->tag, "Numero de activaciones: %lu", pConfig->numActivaciones);
 
         /* Comprueba el estado actual del sistema */
         if ( !paradaEmergenciaLeer(pEmergencia, &pControlDepositoParams.emergencia) ) { continuar = false; }

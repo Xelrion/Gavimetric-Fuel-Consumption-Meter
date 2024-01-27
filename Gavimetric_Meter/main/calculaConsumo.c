@@ -8,7 +8,7 @@
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
 
-#define LOG_LOCAL_LEVEL ESP_LOG_DEBUG
+#define LOG_LOCAL_LEVEL ESP_LOG_INFO
 #include "esp_log.h"
 
 #include "myTaskConfig.h"
@@ -148,13 +148,13 @@ void tareaConsumo(void* pParametros)
             while (medidasDisponibles(pMedidas) & (comando == MEDIDA_MANUAL_PUNTUAL || comando == MEDIDA_MANUAL_CONTINUADA || comando == MEDIDA_OFF))
             {
                 if(!periodo_medidas_modif) { calculoConsumo( pMedidas, pConsumoConsola, periodo_medidas, &continuar); }
-                ESP_LOGI("calculaConsumo", "Bucle1");
+                ESP_LOGI("calculaConsumo", "BucleManual");
             }
             /* Segundo bucle: envía medidas al buffer del sistema remoto (modo remoto) */
             while (medidasDisponibles(pMedidas) && comando == MEDIDA_REMOTO)
             {
                 if(!periodo_medidas_modif) { calculoConsumo( pMedidas, pConsumoRemoto, periodo_medidas, &continuar); }
-                ESP_LOGI("calculaConsumo", "Bucle2");
+                ESP_LOGI("calculaConsumo", "BucleRemoto");
             }
         }
     }

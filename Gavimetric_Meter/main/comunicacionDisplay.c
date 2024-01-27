@@ -27,6 +27,7 @@ static char* TAG = "comunicacionDisplay";
 void actualizar_consumo( double medidasConsumo )
 {
     /* Añade una nueva medida al display */
+    ESP_LOGI("Comunicación Display", "Consumo a display: %f", medidasConsumo);
 }
 
 void actualizar_modo_funcionamiento( estadoSistemaComando_t comando )
