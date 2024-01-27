@@ -25,6 +25,7 @@ bool estadoSistemaCrea( estadoSistema_t* pEstadoSist, const char* etiqueta)
         pEstadoSist->comando = MEDIDA_OFF;
         pEstadoSist->esperaEstabilizacion = DESACTIVADA;
         pEstadoSist->nivelDeposito = NIVEL_NORMAL;
+        pEstadoSist->estadoDeposito = DEPOSITO_NORMAL;
         pEstadoSist->peticionMedidas = 0;
         pEstadoSist->tag = etiqueta;
         pEstadoSist->err = EST_SIST_OK;

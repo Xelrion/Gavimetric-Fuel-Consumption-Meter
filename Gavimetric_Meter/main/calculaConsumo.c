@@ -8,7 +8,7 @@
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
 
-#define LOG_LOCAL_LEVEL ESP_LOG_INFO
+#define LOG_LOCAL_LEVEL ESP_LOG_DEBUG
 #include "esp_log.h"
 
 #include "myTaskConfig.h"
@@ -31,7 +31,8 @@ bool medidasDisponibles( bufferCircular_t* pMedidas )
     int minMedidas = 2;
 
     bufferCircularNumElementos(pMedidas, &numMedidas);
-    return (numMedidas >= 2);
+    ESP_LOGI("calculaConsumo", "numMedidas: %d", numMedidas);
+    return (numMedidas >= minMedidas);
 }
 
 /* Calcula el consumo del depósito por segundo */
@@ -66,6 +67,7 @@ void calculoConsumo( bufferCircular_t* pSacaMedidas, bufferCircular_t* pEnviaCon
 
     /* Introduce el consumo calculado en el buffer de envío */
     if (!bufferCircularMete(pEnviaConsumo, consumo)) { *continuar = false; }
+    ESP_LOGI("calculaConsumo", "Consumo: %f", consumo);
 }
 
 /***********************************************************************************************************
@@ -123,10 +125,9 @@ void tareaConsumo(void* pParametros)
         ESP_LOGD(pConfig->tag, "Numero de activaciones: %lu", pConfig->numActivaciones);
 
         /* ACTUALIZACIÓN DEL PERIODO CONFIGURABLE DE TOMA DE MEDIDAS */
-        /* Comprueba si el periodo de toma de medidas ha cambiado en esta ejecución */
+        /* Comprueba si el periodo de toma de medidas ha sido modificado en esta ejecución */
         periodo_medidas_old = periodo_medidas;
         if (!configSistemaLeerPeriodo(pConfigSist, &periodo_medidas)) { continuar = false; }
-        /* En caso afirmativo, no se calculará el consumo en esta ejecución para evitar utilizar datos erróneos del buffer */
         /* Además, limpiará las medidas de consumo que aún pueda haber en el buffer de la consola o del sistema remoto */
         if (periodo_medidas_old != periodo_medidas)
         {
@@ -140,15 +141,21 @@ void tareaConsumo(void* pParametros)
         /* Comprueba el comando actual de petición de medidas */
         if (!estadoSistemaLeerComando(pEstadoSist, &comando)) { continuar = false; }
         /* Lee y calcula el consumo entre dos medidas, siempre que haya suficientes en el buffer */
-        /* Primer bucle: envía medidas al buffer de la consola (modo manual) */
-        while (medidasDisponibles(pMedidas) & (comando == MEDIDA_MANUAL_PUNTUAL || comando == MEDIDA_MANUAL_CONTINUADA || comando == MEDIDA_OFF))
+        /* Si se ha modificado el periodo de medidas en esta ejecución, no se calculará el consumo para evitar utilizar datos erróneos del buffer*/
+        if(!periodo_medidas_modif)
         {
-            calculoConsumo( pMedidas, pConsumoConsola, periodo_medidas, &continuar);
-        }
-        /* Segundo bucle: envía medidas al buffer del sistema remoto (modo remoto) */
-        while (medidasDisponibles(pMedidas) && comando == MEDIDA_REMOTO)
-        {
-            calculoConsumo( pMedidas, pConsumoRemoto, periodo_medidas, &continuar);
+            /* Primer bucle: envía medidas al buffer de la consola (modo manual) */
+            while (medidasDisponibles(pMedidas) & (comando == MEDIDA_MANUAL_PUNTUAL || comando == MEDIDA_MANUAL_CONTINUADA || comando == MEDIDA_OFF))
+            {
+                if(!periodo_medidas_modif) { calculoConsumo( pMedidas, pConsumoConsola, periodo_medidas, &continuar); }
+                ESP_LOGI("calculaConsumo", "Bucle1");
+            }
+            /* Segundo bucle: envía medidas al buffer del sistema remoto (modo remoto) */
+            while (medidasDisponibles(pMedidas) && comando == MEDIDA_REMOTO)
+            {
+                if(!periodo_medidas_modif) { calculoConsumo( pMedidas, pConsumoRemoto, periodo_medidas, &continuar); }
+                ESP_LOGI("calculaConsumo", "Bucle2");
+            }
         }
     }
 }

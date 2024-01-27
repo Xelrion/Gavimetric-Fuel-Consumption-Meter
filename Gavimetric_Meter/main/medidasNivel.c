@@ -50,7 +50,7 @@ void timer_start(int* timer, int tiempo_max_ms, int periodo_ms)
 /* Decrementa el timer si aún no ha llegado a 0 */
 void timer_next(int* timer)
 {
-    if (*timer > 0) --timer;
+    if (*timer > 0) --*timer;
     ESP_LOGD(TAG, "Tiempo restante: %d", *timer);
 }
 
@@ -179,6 +179,7 @@ void tareaMedidasNivel(void* pParametros)
         if (!paradaEmergencia && timer_expired(timer_periodo_medidas) && (estado_deposito == DEPOSITO_NORMAL))
         {
             if (!bufferCircularMete(pMedidas, medida)) { continuar = false; }
+            timer_start(&timer_periodo_medidas, periodo_medidas, pConfig->periodo);
         }
         /* Si no se cumplen, se limpia el buffer para eliminar medidas desactualizadas */
         if (paradaEmergencia + (estado_deposito != DEPOSITO_NORMAL))

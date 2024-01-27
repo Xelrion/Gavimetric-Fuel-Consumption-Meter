@@ -158,11 +158,9 @@ bool bufferCircularVacio( bufferCircular_t* pBuffer )
 /* Comprueba cuántos elementos contiene actualmente el buffer */
 bool bufferCircularNumElementos( bufferCircular_t* pBuffer, int* pValor )
 {
-    int numElementos = 0;
-
     if (xSemaphoreTake(pBuffer->mutex, (TickType_t) 10) == pdTRUE)
     {
-        numElementos = (pBuffer->numElementos);
+        *pValor = (pBuffer->numElementos);
         xSemaphoreGive(pBuffer->mutex);
         pBuffer->err = BUFFER_OK;
         xSemaphoreGive(pBuffer->mutex);
@@ -187,7 +185,7 @@ bool bufferCircularLimpia( bufferCircular_t* pBuffer )
             pBuffer->cola = pBuffer->cola % NUMELEMENTOS;
             pBuffer->numElementos--;
         }
-        ESP_LOGE(pBuffer->tag, "Buffer vaciado");
+        ESP_LOGD(pBuffer->tag, "Buffer vaciado");
         pBuffer->err = BUFFER_OK;
 
         xSemaphoreGive(pBuffer->mutex);
