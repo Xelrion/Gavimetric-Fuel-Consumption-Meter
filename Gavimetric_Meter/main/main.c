@@ -98,7 +98,7 @@ paradaEmergencia_t paradaEmergencia;
 const char* tagParadaEmergencia = "Struct_Parada_Emergencia";
 
 // extern "C" void app_main(void)
-void app_main_debug(void)
+void app_main(void)
 {
     // Preparamos los buffers de intercambio de información
     bufferCircularCrea(&medidas, tagMedidas);
