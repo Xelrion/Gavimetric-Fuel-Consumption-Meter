@@ -156,30 +156,35 @@ void tareaComandosConsola(void* pParametros)
             {
                 if ( !configSistemaEscribirPeriodo(pConfigSist, (int) valor) ) { continuar = false; }
             }
+            break;
 
         case CONFIG_TIEMPO_ESTAB:
             if (modo_manual)
             {
                 if ( !configSistemaEscribirEspera(pConfigSist, valor) ) { continuar = false; }
             }
+            break;
 
         case CONFIG_CONSUMO_MAXIMO:
             if (modo_manual)
             {
                 if ( !configSistemaEscribirConsumoMax(pConfigSist, valor) ) { continuar = false; }
             }
+            break;
 
         case CONFIG_NIVEL_MINIMO:
             if (modo_manual)
             {
                 if ( !configSistemaEscribirNivelMin(pConfigSist, valor) ) { continuar = false; }
             }
+            break;
 
         case CONFIG_NIVEL_MAXIMO:
             if (modo_manual)
             {
                 if ( !configSistemaEscribirNivelMax(pConfigSist, valor) ) { continuar = false; }
             }
+            break;
 
         default:
             break;

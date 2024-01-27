@@ -27,7 +27,7 @@ void fsm_update (fsm_t* p_fsm, void* p_params)
 // Recorre la tabla de transiciones hasta encontrar una con estado origen < 0
 // (Marca de fin de tabla)
   for (t = p_fsm->tt; t->orig_state >= 0; ++t) {
-    if ((p_fsm->current_state == t->orig_state) && t->in(p_fsm)) {
+    if ((p_fsm->current_state == t->orig_state) && t->in(p_params)) {
       // Si el estado actual de la máquina es el origen de la transición
       // que se está evaluando y se cumple la condición de transición
       // Actualiza el estado actual de la máquina al destino de la transición
@@ -35,7 +35,7 @@ void fsm_update (fsm_t* p_fsm, void* p_params)
 
       // Y si hay salida se actualiza la salida
       if (t->out)
-        t->out(p_fsm);
+        t->out(p_params);
 
       // Si se produce una transición se deja de evaluar la tabla  
       break;

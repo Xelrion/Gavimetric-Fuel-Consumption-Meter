@@ -65,7 +65,7 @@ void valv_vac_close (void)
  ***********************************************************************************************************/
 
 /* Parada de emergencia inactiva Y (Comando de llenado O Detección de nivel mínimo)*/
-bool deposito_c12 (void *params)
+int deposito_c12 (void *params)
 {
     tareaControlDepositoParams_t *pParams = (tareaControlDepositoParams_t *)params;
 
@@ -81,7 +81,7 @@ bool deposito_c12 (void *params)
 }
 
 /* Parada de emergencia inactiva Y Comando de vaciado */
-bool deposito_c13 (void *params)
+int deposito_c13 (void *params)
 {
     tareaControlDepositoParams_t *pParams = (tareaControlDepositoParams_t *)params;
 
@@ -95,7 +95,7 @@ bool deposito_c13 (void *params)
 }
 
 /* Parada de emergencia activa O Comando de detención de llenado O Detección de nivel máximo */
-bool deposito_c21 (void *params)
+int deposito_c21 (void *params)
 {
     tareaControlDepositoParams_t *pParams = (tareaControlDepositoParams_t *)params;
 
@@ -111,7 +111,7 @@ bool deposito_c21 (void *params)
 }
 
 /* Comando de vaciado */
-bool deposito_c23 (void *params)
+int deposito_c23 (void *params)
 {
     tareaControlDepositoParams_t *pParams = (tareaControlDepositoParams_t *)params;
 
@@ -123,7 +123,7 @@ bool deposito_c23 (void *params)
 }
 
 /* Parada de emergencia activa O Comando de detención de vaciado */
-bool deposito_c31 (void *params)
+int deposito_c31 (void *params)
 {
     tareaControlDepositoParams_t *pParams = (tareaControlDepositoParams_t *)params;
 
@@ -137,7 +137,7 @@ bool deposito_c31 (void *params)
 }
 
 /* Comando de llenado */
-bool deposito_c32 (void *params)
+int deposito_c32 (void *params)
 {
     tareaControlDepositoParams_t *pParams = (tareaControlDepositoParams_t *)params;
 
@@ -258,8 +258,8 @@ void tareaControlDeposito(void* pParametros)
     /* Entre la tarea y la aplicación principal */
     taskConfig_t* pConfig           = ((taskInfo_t *)pParametros)->pConfig;
     void*           pData           = ((taskInfo_t *)pParametros)->pData;
-    estadoSistema_t* pEstadoSist    = ((tareaControlDepositoInfo_t *)pParametros)->pEstadoSist;
-    paradaEmergencia_t* pEmergencia = ((tareaControlDepositoInfo_t *)pParametros)->pEmergencia;
+    estadoSistema_t* pEstadoSist    = ((tareaControlDepositoInfo_t *)pData)->pEstadoSist;
+    paradaEmergencia_t* pEmergencia = ((tareaControlDepositoInfo_t *)pData)->pEmergencia;
 
     ESP_LOGI(pConfig->tag, "Periodo de planificación: %lu ms", pConfig->periodo);
     ESP_LOGI(pConfig->tag, "Número inicial de activaciones: %lu", pConfig->numActivaciones);

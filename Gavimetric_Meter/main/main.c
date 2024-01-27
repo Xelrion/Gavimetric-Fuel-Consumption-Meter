@@ -109,7 +109,7 @@ void app_main_debug(void)
     paradaEmergenciaCrea(&paradaEmergencia, tagParadaEmergencia);
 
     // Prepara la estructura con la información que intercambia cada tarea
-    tareaControlDepositoSet(&tskMedidasNivel_data, &estadoSistema, &paradaEmergencia);
+    tareaControlDepositoSet(&tskControlDeposito_data, &estadoSistema, &paradaEmergencia);
     tareaMedidasNivelSet(&tskMedidasNivel_data, &medidas, &estadoSistema, &configSistema, &paradaEmergencia);
     tareaConsumoSet(&tskConsumo_data, &medidas, &consumoRemoto, &consumoConsola, &estadoSistema, &configSistema);
     tareaComandosConsolaSet(&tskComandosConsola_data, &estadoSistema, &configSistema, &paradaEmergencia);
