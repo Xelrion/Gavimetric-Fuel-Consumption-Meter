@@ -18,7 +18,7 @@
 #include "controlDeposito.h"
 
 /* Etiqueta para depuración */
-const char* TAG = "controlDeposito";
+static char* TAG = "controlDeposito";
 
 /***********************************************************************************************************
  * Funciones de control del depósito
@@ -74,10 +74,10 @@ bool deposito_c12 (void *params)
     bool nivel_min = 0;
 
     emergencia = pParams->emergencia;
-    if (pParams->estadoDeposito == LLENADO) { llenado = 1; }
-    if (pParams->nivelDeposito == MINIMO) { nivel_min = 1; }
+    if (pParams->estadoDeposito == DEPOSITO_LLENADO) { llenado = 1; }
+    if (pParams->nivelDeposito == NIVEL_MINIMO) { nivel_min = 1; }
 
-    return !emergencia * (llenado + nivel_min);
+    return !emergencia && (llenado + nivel_min);
 }
 
 /* Parada de emergencia inactiva Y Comando de vaciado */
@@ -89,9 +89,9 @@ bool deposito_c13 (void *params)
     bool vaciado = 0;
 
     emergencia = pParams->emergencia;
-    if (pParams->estadoDeposito == VACIADO) { vaciado = 1; }
+    if (pParams->estadoDeposito == DEPOSITO_VACIADO) { vaciado = 1; }
 
-    return !emergencia * vaciado;
+    return !emergencia && vaciado;
 }
 
 /* Parada de emergencia activa O Comando de detención de llenado O Detección de nivel máximo */
@@ -104,8 +104,8 @@ bool deposito_c21 (void *params)
     bool nivel_max = 0;
 
     emergencia = pParams->emergencia;
-    if (pParams->estadoDeposito == NORMAL) { llenado_stop = 1; }
-    if (pParams->nivelDeposito == MAXIMO) { nivel_max = 1; }
+    if (pParams->estadoDeposito == DEPOSITO_NORMAL) { llenado_stop = 1; }
+    if (pParams->nivelDeposito == NIVEL_MAXIMO) { nivel_max = 1; }
 
     return emergencia + llenado_stop + nivel_max;
 }
@@ -117,7 +117,7 @@ bool deposito_c23 (void *params)
 
     bool vaciado = 0;
 
-    if (pParams->estadoDeposito == VACIADO) { vaciado = 1; }
+    if (pParams->estadoDeposito == DEPOSITO_VACIADO) { vaciado = 1; }
 
     return vaciado;
 }
@@ -131,7 +131,7 @@ bool deposito_c31 (void *params)
     bool vaciado_stop = 0;
 
     emergencia = pParams->emergencia;
-    if (pParams->estadoDeposito == NORMAL) { vaciado_stop = 1; }
+    if (pParams->estadoDeposito == DEPOSITO_NORMAL) { vaciado_stop = 1; }
 
     return emergencia + vaciado_stop;
 }
@@ -143,7 +143,7 @@ bool deposito_c32 (void *params)
 
     bool llenado = 0;
 
-    if (pParams->estadoDeposito == LLENADO) { llenado = 1; }
+    if (pParams->estadoDeposito == DEPOSITO_LLENADO) { llenado = 1; }
 
     return llenado;
 }
@@ -155,57 +155,57 @@ bool deposito_c32 (void *params)
 void deposito_a12 (void* params)
 {
     tareaControlDepositoParams_t *pParams = (tareaControlDepositoParams_t *)params;
-    estadoSistema_t* pEstadoSist = pParams->estadoDeposito;
+    estadoSistema_t* pEstadoSist = pParams->estadoSist;
 
     bomba_on();
     valv_llen_open();
 
-    if ( !estadoSistemaEscribirDeposito(pEstadoSist, LLENADO) ) { *(pParams->continuar) = false; }
+    if ( !estadoSistemaEscribirDeposito(pEstadoSist, DEPOSITO_LLENADO) ) { *(pParams->continuar) = false; }
 }
 
 void deposito_a13 (void* params)
 {
     tareaControlDepositoParams_t *pParams = (tareaControlDepositoParams_t *)params;
-    estadoSistema_t* pEstadoSist = pParams->estadoDeposito;
+    estadoSistema_t* pEstadoSist = pParams->estadoSist;
 
     valv_vac_open();
 
-    if ( !estadoSistemaEscribirDeposito(pEstadoSist, VACIADO) ) { *(pParams->continuar) = false; }
+    if ( !estadoSistemaEscribirDeposito(pEstadoSist, DEPOSITO_VACIADO) ) { *(pParams->continuar) = false; }
 }
 
 void deposito_a23 (void* params)
 {
     tareaControlDepositoParams_t *pParams = (tareaControlDepositoParams_t *)params;
-    estadoSistema_t* pEstadoSist = pParams->estadoDeposito;
+    estadoSistema_t* pEstadoSist = pParams->estadoSist;
 
     bomba_off();
     valv_llen_close();
     valv_vac_open();
 
-    if ( !estadoSistemaEscribirDeposito(pEstadoSist, VACIADO) ) { *(pParams->continuar) = false; }
+    if ( !estadoSistemaEscribirDeposito(pEstadoSist, DEPOSITO_VACIADO) ) { *(pParams->continuar) = false; }
 }
 
 void deposito_a32 (void* params)
 {
     tareaControlDepositoParams_t *pParams = (tareaControlDepositoParams_t *)params;
-    estadoSistema_t* pEstadoSist = pParams->estadoDeposito;
+    estadoSistema_t* pEstadoSist = pParams->estadoSist;
 
     valv_vac_close();
     valv_llen_open();
     bomba_on();
 
-    if ( !estadoSistemaEscribirDeposito(pEstadoSist, LLENADO) ) { *(pParams->continuar) = false; }
+    if ( !estadoSistemaEscribirDeposito(pEstadoSist, DEPOSITO_LLENADO) ) { *(pParams->continuar) = false; }
 }
 
 void deposito_a21 (void* params)
 {
     tareaControlDepositoParams_t *pParams = (tareaControlDepositoParams_t *)params;
-    estadoSistema_t* pEstadoSist = pParams->estadoDeposito;
+    estadoSistema_t* pEstadoSist = pParams->estadoSist;
 
     bomba_off();
     valv_llen_close();
     
-    if ( !estadoSistemaEscribirDeposito(pEstadoSist, NORMAL) ) { *(pParams->continuar) = false; }
+    if ( !estadoSistemaEscribirDeposito(pEstadoSist, DEPOSITO_NORMAL) ) { *(pParams->continuar) = false; }
     /* Se inicia la espera de estabilización */
     if ( !estadoSistemaEscribirEspera(pEstadoSist, INICIADA) ) { *(pParams->continuar) = false; }
 }
@@ -213,11 +213,11 @@ void deposito_a21 (void* params)
 void deposito_a31 (void* params)
 {
     tareaControlDepositoParams_t *pParams = (tareaControlDepositoParams_t *)params;
-    estadoSistema_t* pEstadoSist = pParams->estadoDeposito;
+    estadoSistema_t* pEstadoSist = pParams->estadoSist;
 
     valv_vac_close();
 
-    if ( !estadoSistemaEscribirDeposito(pEstadoSist, NORMAL) ) { *(pParams->continuar) = false; }
+    if ( !estadoSistemaEscribirDeposito(pEstadoSist, DEPOSITO_NORMAL) ) { *(pParams->continuar) = false; }
 }
 
 /***********************************************************************************************************
@@ -283,8 +283,8 @@ void tareaControlDeposito(void* pParametros)
     /* Prepara los parámetros de entrada para las funciones de condición de transferencia */
     tareaControlDepositoParams_t pControlDepositoParams;
     pControlDepositoParams.emergencia = 0;
-    pControlDepositoParams.nivelDeposito = NORMAL;
-    pControlDepositoParams.estadoDeposito = NORMAL;
+    pControlDepositoParams.nivelDeposito = NIVEL_NORMAL;
+    pControlDepositoParams.estadoDeposito = DEPOSITO_NORMAL;
     pControlDepositoParams.estadoSist = pEstadoSist;
     pControlDepositoParams.continuar = &continuar;
 

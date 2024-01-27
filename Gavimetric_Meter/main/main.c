@@ -44,7 +44,7 @@ static const char* TSKCONTROLDEP_TAG = "ControlDeposito";
 #define TSKCONTROLDEP_PRIORIDAD    7
 
 static const char* TSKMEDIDASNIV_TAG = "MedidasNivel";
-#define TSKMEDIDASNIV_PERIODO_MS 500
+#define TSKMEDIDASNIV_PERIODO_MS 2500
 #define TSKMEDIDASNIV_STACK_WD  2048
 #define TSKMEDIDASNIV_PRIORIDAD    6
 
@@ -98,7 +98,7 @@ paradaEmergencia_t paradaEmergencia;
 const char* tagParadaEmergencia = "Struct_Parada_Emergencia";
 
 // extern "C" void app_main(void)
-void app_main(void)
+void app_main_debug(void)
 {
     // Preparamos los buffers de intercambio de información
     bufferCircularCrea(&medidas, tagMedidas);
@@ -135,11 +135,13 @@ void app_main(void)
 
     // Planifica cada tarea
     xTaskCreate(tareaMedidasNivel, TSKMEDIDASNIV_TAG, TSKMEDIDASNIV_STACK_WD, &tskMedidasNivel_info, TSKMEDIDASNIV_PRIORIDAD,  &tskMedidasNivel); tskMedidasNivel_config.activa = 1; // numTsk++;
-    xTaskCreate(tareaControlDeposito,   TSKCONTROLDEP_TAG,   TSKCONTROLDEP_STACK_WD,   &tskMedidasNivel_info,   TSKMEDIDASNIV_PRIORIDAD,    &tskMedidasNivel);   tskControlDeposito_config.activa = 1;   // numTsk++;
-    xTaskCreate(tareaConsumo,   TSKCONSUMO_TAG,   TSKCONSUMO_STACK_WD,   &tskConsumo_info,   TSKCONSUMO_PRIORIDAD,    &tskConsumo);   tskConsumo_config.activa = 1;   // numTsk++;
-    xTaskCreate(tareaComandosConsola,   TSKCOMANDOSCONS_TAG,   TSKCOMANDOSCONS_STACK_WD,   &tskComandosConsola_info,   TSKCOMANDOSCONS_PRIORIDAD,    &tskComandosConsola);   tskComandosConsola_config.activa = 1;   // numTsk++;
-    xTaskCreate(tareaComunicacionDisplay,   TSKCOMUNDISPLAY_TAG,   TSKCOMUNDISPLAY_STACK_WD,   &tskComunicacionDisplay_info,   TSKCOMUNDISPLAY_PRIORIDAD,    &tskComunicacionDisplay);   tskComunicacionDisplay_config.activa = 1;   // numTsk++;
-    xTaskCreate(tareaComunicacionRemoto,   TSKCOMUNREMOTO_TAG,   TSKCOMUNREMOTO_STACK_WD,   &tskComunicacionRemoto_info,   TSKCOMUNREMOTO_PRIORIDAD,    &tskComunicacionRemoto);   tskComunicacionRemoto_config.activa = 1;   // numTsk++;
+    //xTaskCreate(tareaControlDeposito,   TSKCONTROLDEP_TAG,   TSKCONTROLDEP_STACK_WD,   &tskMedidasNivel_info,   TSKMEDIDASNIV_PRIORIDAD,    &tskMedidasNivel);   tskControlDeposito_config.activa = 1;   // numTsk++;
+    //xTaskCreate(tareaConsumo,   TSKCONSUMO_TAG,   TSKCONSUMO_STACK_WD,   &tskConsumo_info,   TSKCONSUMO_PRIORIDAD,    &tskConsumo);   tskConsumo_config.activa = 1;   // numTsk++;
+    //xTaskCreate(tareaComandosConsola,   TSKCOMANDOSCONS_TAG,   TSKCOMANDOSCONS_STACK_WD,   &tskComandosConsola_info,   TSKCOMANDOSCONS_PRIORIDAD,    &tskComandosConsola);   tskComandosConsola_config.activa = 1;   // numTsk++;
+    //xTaskCreate(tareaComunicacionDisplay,   TSKCOMUNDISPLAY_TAG,   TSKCOMUNDISPLAY_STACK_WD,   &tskComunicacionDisplay_info,   TSKCOMUNDISPLAY_PRIORIDAD,    &tskComunicacionDisplay);   tskComunicacionDisplay_config.activa = 1;   // numTsk++;
+    //xTaskCreate(tareaComunicacionRemoto,   TSKCOMUNREMOTO_TAG,   TSKCOMUNREMOTO_STACK_WD,   &tskComunicacionRemoto_info,   TSKCOMUNREMOTO_PRIORIDAD,    &tskComunicacionRemoto);   tskComunicacionRemoto_config.activa = 1;   // numTsk++;
+
+    vTaskStartScheduler();
 
     vTaskDelay(10);
 

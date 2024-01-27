@@ -17,7 +17,7 @@
 #include "medidasNivel.h"
 
 /* Etiqueta para depuración */
-const char* TAG = "medidasNivel";
+static char* TAG = "medidasNivel";
 
 /***********************************************************************************************************
  * Funciones de lectura de la báscula
@@ -44,14 +44,14 @@ int  timer_expired(int* timer)
 El periodo de cálculo de consumo se corresponde al periodo de ejecución fijo de la tarea. */
 void timer_start(int* timer, int tiempo_max_ms, int periodo_ms)
 {
-    timer = (tiempo_max_ms) / periodo_ms;
+    *timer = (tiempo_max_ms) / periodo_ms;
 }
 
 /* Decrementa el timer si aún no ha llegado a 0 */
 void timer_next(int* timer)
 {
-    if (timer > 0) --timer;
-    ESP_LOGD(TAG, "Tiempo restante: %d", timer);
+    if (*timer > 0) --timer;
+    ESP_LOGD(TAG, "Tiempo restante: %d", *timer);
 }
 
 /***********************************************************************************************************
@@ -68,7 +68,7 @@ void tareaMedidasNivelSet(tareaMedidasNivelInfo_t* pTaskInfo, bufferCircular_t* 
 }
 
 /* Punto de entrada de la tarea de toma de medidas */
-void tareaLectura(void* pParametros)
+void tareaMedidasNivel(void* pParametros)
 {
     /* Estructuras para intercambio de información */
     /* Entre la tarea y la aplicación principal */
@@ -93,7 +93,7 @@ void tareaLectura(void* pParametros)
 
     /* Estado del sistema */
     estadoSistemaEspera_t espera_estabilizacion = DESACTIVADA;
-    estadoSistemaDeposito_t estado_deposito = NORMAL;
+    estadoSistemaDeposito_t estado_deposito = DEPOSITO_NORMAL;
     bool paradaEmergencia = false;
 
     /* Límites de nivel de depósito */
@@ -141,15 +141,15 @@ void tareaLectura(void* pParametros)
             /* Actualiza el estado del sistema en función del resultado de la comprobación*/
             if (nivelMaximo)
             {
-                if (!estadoSistemaEscribirNivel(pConfigSist, MAXIMO)) { continuar = false; }
+                if (!estadoSistemaEscribirNivel(pConfigSist, NIVEL_MAXIMO)) { continuar = false; }
             }
             if (nivelMinimo)
             {
-                if (!estadoSistemaEscribirNivel(pConfigSist, MINIMO)) { continuar = false; }
+                if (!estadoSistemaEscribirNivel(pConfigSist, NIVEL_MINIMO)) { continuar = false; }
             }
             if (!nivelMaximo + !nivelMinimo)
             {
-                if (!estadoSistemaEscribirNivel(pConfigSist, NORMAL)) { continuar = false; }
+                if (!estadoSistemaEscribirNivel(pConfigSist, NIVEL_NORMAL)) { continuar = false; }
             }
         }
 
@@ -157,7 +157,7 @@ void tareaLectura(void* pParametros)
         /* INICIALIZACIÓN DEL TIMER DE ESPERA DE ESTABILIZACIÓN */
         /* Si la espera de estabilización está activa y acaba de expirar, se desactiva */
         estadoSistemaLeerEspera(pEstadoSist, &espera_estabilizacion);
-        if (espera_estabilizacion == EN_CURSO & timer_expired(timer_espera_estabilizacion))
+        if ((espera_estabilizacion == EN_CURSO) & timer_expired(timer_espera_estabilizacion))
         {
             espera_estabilizacion = DESACTIVADA;
             estadoSistemaEscribirEspera(pEstadoSist, espera_estabilizacion);
@@ -175,12 +175,12 @@ void tareaLectura(void* pParametros)
         /* Comprueba el estado del depósito */
         if ( !estadoSistemaLeerDeposito(pEstadoSist, &estado_deposito )) { continuar = false; }
         /* Si se cumplen todas las condiciones y el periodo de toma de medidas ha finalizado, se envía la medida */
-        if (!paradaEmergencia * timer_expired(timer_periodo_medidas) * (estado_deposito == NORMAL))
+        if (!paradaEmergencia && timer_expired(timer_periodo_medidas) && (estado_deposito == DEPOSITO_NORMAL))
         {
             if (!bufferCircularMete(pMedidas, medida)) { continuar = false; }
         }
         /* Si no se cumplen, se limpia el buffer para eliminar medidas desactualizadas */
-        if (paradaEmergencia + (estado_deposito != NORMAL))
+        if (paradaEmergencia + (estado_deposito != DEPOSITO_NORMAL))
         {
             if (!bufferCircularLimpia(pMedidas)) { continuar = false; }
         }

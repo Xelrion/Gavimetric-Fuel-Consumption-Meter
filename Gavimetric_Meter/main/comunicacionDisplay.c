@@ -18,7 +18,7 @@
 #include "comunicacionDisplay.h"
 
 /* Etiqueta para depuración */
-const char* TAG = "comunicacionDisplay";
+static char* TAG = "comunicacionDisplay";
 
 /***********************************************************************************************************
  * Funciones de comunicación con el display

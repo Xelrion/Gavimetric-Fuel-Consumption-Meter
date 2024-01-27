@@ -19,7 +19,7 @@
 #include "comunicacionRemoto.h"
 
 /* Etiqueta para depuración */
-const char* TAG = "comunicacionRemoto";
+static char* TAG = "comunicacionRemoto";
 
 /***********************************************************************************************************
  * Salida digital del sistema remoto

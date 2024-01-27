@@ -37,18 +37,18 @@ typedef enum _estadoSistemaEspera
 /* Aviso de límite de nivel del depósito */
 typedef enum _estadoSistemaNivel
 {
-    NORMAL,
-    MAXIMO,
-    MINIMO
+    NIVEL_NORMAL,
+    NIVEL_MAXIMO,
+    NIVEL_MINIMO
 
 } estadoSistemaNivel_t;
 
 /* Estado del depósito */
 typedef enum _estadoSistemaDeposito
 {
-    NORMAL,
-    LLENADO,
-    VACIADO
+    DEPOSITO_NORMAL,
+    DEPOSITO_LLENADO,
+    DEPOSITO_VACIADO
 
 } estadoSistemaDeposito_t;
 

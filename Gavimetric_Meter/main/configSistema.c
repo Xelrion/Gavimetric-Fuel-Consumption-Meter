@@ -100,14 +100,14 @@ bool configSistemaLeerConsumoMax( configSistema_t* pConfigSist, double* pConsumo
     if (xSemaphoreTake(pConfigSist->mutex, (TickType_t) 10) == pdTRUE)
     {
         *pConsumoMax = pConfigSist->consumoMaximo;
-        ESP_LOGD(pConfigSist->tag, "Consumo máximo: %d", (pConfigSist->consumoMaximo));
+        ESP_LOGD(pConfigSist->tag, "Consumo máximo: %f", (pConfigSist->consumoMaximo));
         pConfigSist->err = CONFIG_SIST_OK;
         xSemaphoreGive(pConfigSist->mutex);
     }
     else
     {
         ESP_LOGE(pConfigSist->tag, "Fallo al intentar tomar mutex");
-        ESP_LOGE(pConfigSist->tag, "para leer el consumo máximo de combustible: %d", (pConfigSist->consumoMaximo));
+        ESP_LOGE(pConfigSist->tag, "para leer el consumo máximo de combustible: %f", (pConfigSist->consumoMaximo));
 
         pConfigSist->err = CONFIG_SIST_ERR_MUTEX;
     }
@@ -121,14 +121,14 @@ bool configSistemaLeerNivelMax( configSistema_t* pConfigSist, double* pNivelMax 
     if (xSemaphoreTake(pConfigSist->mutex, (TickType_t) 10) == pdTRUE)
     {
         *pNivelMax = pConfigSist->nivelMaximo;
-        ESP_LOGD(pConfigSist->tag, "Nivel máximo: %d", (pConfigSist->nivelMaximo));
+        ESP_LOGD(pConfigSist->tag, "Nivel máximo: %f", (pConfigSist->nivelMaximo));
         pConfigSist->err = CONFIG_SIST_OK;
         xSemaphoreGive(pConfigSist->mutex);
     }
     else
     {
         ESP_LOGE(pConfigSist->tag, "Fallo al intentar tomar mutex");
-        ESP_LOGE(pConfigSist->tag, "para leer el nivel máximo de combustible: %d", (pConfigSist->nivelMaximo));
+        ESP_LOGE(pConfigSist->tag, "para leer el nivel máximo de combustible: %f", (pConfigSist->nivelMaximo));
 
         pConfigSist->err = CONFIG_SIST_ERR_MUTEX;
     }
@@ -142,14 +142,14 @@ bool configSistemaLeerNivelMin( configSistema_t* pConfigSist, double* pNivelMin 
     if (xSemaphoreTake(pConfigSist->mutex, (TickType_t) 10) == pdTRUE)
     {
         *pNivelMin = pConfigSist->nivelMinimo;
-        ESP_LOGD(pConfigSist->tag, "Nivel mínimo: %d", (pConfigSist->nivelMinimo));
+        ESP_LOGD(pConfigSist->tag, "Nivel mínimo: %f", (pConfigSist->nivelMinimo));
         pConfigSist->err = CONFIG_SIST_OK;
         xSemaphoreGive(pConfigSist->mutex);
     }
     else
     {
         ESP_LOGE(pConfigSist->tag, "Fallo al intentar tomar mutex");
-        ESP_LOGE(pConfigSist->tag, "para leer el nivel mínimo de combustible: %d", (pConfigSist->nivelMinimo));
+        ESP_LOGE(pConfigSist->tag, "para leer el nivel mínimo de combustible: %f", (pConfigSist->nivelMinimo));
 
         pConfigSist->err = CONFIG_SIST_ERR_MUTEX;
     }
@@ -205,14 +205,14 @@ bool configSistemaEscribirConsumoMax( configSistema_t* pConfigSist, double pCons
     if (xSemaphoreTake(pConfigSist->mutex, (TickType_t) 10) == pdTRUE)
     {
         pConfigSist->consumoMaximo = pConsumoMax;
-        ESP_LOGD(pConfigSist->tag, "Consumo máximo: %d", (pConfigSist->consumoMaximo));
+        ESP_LOGD(pConfigSist->tag, "Consumo máximo: %f", (pConfigSist->consumoMaximo));
         pConfigSist->err = CONFIG_SIST_OK;
         xSemaphoreGive(pConfigSist->mutex);
     }
     else
     {
         ESP_LOGE(pConfigSist->tag, "Fallo al intentar tomar mutex");
-        ESP_LOGE(pConfigSist->tag, "para modificar el consumo máximo de combustible: %d", (pConfigSist->consumoMaximo));
+        ESP_LOGE(pConfigSist->tag, "para modificar el consumo máximo de combustible: %f", (pConfigSist->consumoMaximo));
 
         pConfigSist->err = CONFIG_SIST_ERR_MUTEX;
     }
@@ -226,14 +226,14 @@ bool configSistemaEscribirNivelMax( configSistema_t* pConfigSist, double pNivelM
     if (xSemaphoreTake(pConfigSist->mutex, (TickType_t) 10) == pdTRUE)
     {
         pConfigSist->nivelMaximo = pNivelMax;
-        ESP_LOGD(pConfigSist->tag, "Nivel máximo: %d", (pConfigSist->nivelMaximo));
+        ESP_LOGD(pConfigSist->tag, "Nivel máximo: %f", (pConfigSist->nivelMaximo));
         pConfigSist->err = CONFIG_SIST_OK;
         xSemaphoreGive(pConfigSist->mutex);
     }
     else
     {
         ESP_LOGE(pConfigSist->tag, "Fallo al intentar tomar mutex");
-        ESP_LOGE(pConfigSist->tag, "para modificar el nivel máximo de combustible: %d", (pConfigSist->nivelMaximo));
+        ESP_LOGE(pConfigSist->tag, "para modificar el nivel máximo de combustible: %f", (pConfigSist->nivelMaximo));
 
         pConfigSist->err = CONFIG_SIST_ERR_MUTEX;
     }
@@ -247,14 +247,14 @@ bool configSistemaEscribirNivelMin( configSistema_t* pConfigSist, double pNivelM
     if (xSemaphoreTake(pConfigSist->mutex, (TickType_t) 10) == pdTRUE)
     {
         pConfigSist->nivelMinimo = pNivelMin;
-        ESP_LOGD(pConfigSist->tag, "Nivel mínimo: %d", (pConfigSist->nivelMinimo));
+        ESP_LOGD(pConfigSist->tag, "Nivel mínimo: %f", (pConfigSist->nivelMinimo));
         pConfigSist->err = CONFIG_SIST_OK;
         xSemaphoreGive(pConfigSist->mutex);
     }
     else
     {
         ESP_LOGE(pConfigSist->tag, "Fallo al intentar tomar mutex");
-        ESP_LOGE(pConfigSist->tag, "para modificar el nivel mínimo de combustible: %d", (pConfigSist->nivelMinimo));
+        ESP_LOGE(pConfigSist->tag, "para modificar el nivel mínimo de combustible: %f", (pConfigSist->nivelMinimo));
 
         pConfigSist->err = CONFIG_SIST_ERR_MUTEX;
     }
@@ -281,7 +281,7 @@ bool configSistemaComprobarNivel( configSistema_t* pConfigSist, double pMedida, 
     else
     {
         ESP_LOGE(pConfigSist->tag, "Fallo al intentar tomar mutex");
-        ESP_LOGE(pConfigSist->tag, "para comprobar si la medida supera los límites de nivel: %d", (pMedida));
+        ESP_LOGE(pConfigSist->tag, "para comprobar si la medida supera los límites de nivel: %f", (pMedida));
 
         pConfigSist->err = CONFIG_SIST_ERR_MUTEX;
     }

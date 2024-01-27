@@ -18,7 +18,7 @@
 #include "calculaConsumo.h"
 
 /* Etiqueta para depuración */
-const char* TAG = "calculaConsumo";
+static char* TAG = "calculaConsumo";
 
 /***********************************************************************************************************
  * Funciones de cálculo de medidas
@@ -65,7 +65,7 @@ void calculoConsumo( bufferCircular_t* pSacaMedidas, bufferCircular_t* pEnviaCon
     consumo = consumoHora(medida1, medida2, periodo_medidas);
 
     /* Introduce el consumo calculado en el buffer de envío */
-    if (!bufferCircularMete(pEnviaConsumo, consumo)) { continuar = false; }
+    if (!bufferCircularMete(pEnviaConsumo, consumo)) { *continuar = false; }
 }
 
 /***********************************************************************************************************

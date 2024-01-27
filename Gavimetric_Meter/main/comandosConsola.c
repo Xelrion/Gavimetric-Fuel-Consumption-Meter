@@ -18,7 +18,7 @@
 #include "comandosConsola.h"
 
 /* Etiqueta para depuración */
-const char* TAG = "comandosConsola";
+static char* TAG = "comandosConsola";
 
 /***********************************************************************************************************
  * Funciones de lectura de comandos
@@ -29,8 +29,8 @@ void lectura_comando( comandosConsola_t* comando, double* valor)
 {
     /* Nota: devolver comando y valor asociado si lo hubiera */
     /* Si no hay comando, devuelve -1 */
-    comando = -1;
-    valor = 100;
+    *comando = -1;
+    *valor = 100;
 }
 
 /***********************************************************************************************************
@@ -67,7 +67,7 @@ void tareaComandosConsola(void* pParametros)
     bool emergencia = false;
 
     /* Estado del depósito */
-    estadoSistemaDeposito_t estadoDeposito = NORMAL;
+    estadoSistemaDeposito_t estadoDeposito = DEPOSITO_NORMAL;
 
     /* Lectura de comandos */
     comandosConsola_t comando = -1;   // comando recibido desde la consola
@@ -89,7 +89,7 @@ void tareaComandosConsola(void* pParametros)
         paradaEmergenciaLeer(pEmergencia, &emergencia);
 
         /* En caso afirmativo, si el sistema aún no se encuentra en modo manual, conmuta */
-        if (emergencia & !modo_manual) { modo_manual = true; }
+        if (emergencia && !modo_manual) { modo_manual = true; }
 
         /* Lee el último comando recibido desde la consola, y su valor asociado, si los hubiera */
         lectura_comando(&comando, &valor);
@@ -106,48 +106,48 @@ void tareaComandosConsola(void* pParametros)
             break;
 
         case INICIAR_MEDIDA_CONTINUADA:
-            if (modo_manual & !emergencia) 
+            if (modo_manual && !emergencia) 
             { 
                 if ( !estadoSistemaEscribirComando(pEstadoSist, MEDIDA_MANUAL_CONTINUADA) ) { continuar = false; }
             }
             break;
 
         case DETENER_MEDIDA_CONTINUADA:
-            if (modo_manual & !emergencia)
+            if (modo_manual && !emergencia)
             {
                 if ( !estadoSistemaEscribirComando(pEstadoSist, DESACTIVADA) ) { continuar = false; }
             }
             break;
 
         case INICIAR_LLENADO:
-            if (modo_manual & !emergencia)
+            if (modo_manual && !emergencia)
             {
-                if ( !estadoSistemaEscribirDeposito(pEstadoSist, LLENADO) ) { continuar = false; }
+                if ( !estadoSistemaEscribirDeposito(pEstadoSist, DEPOSITO_LLENADO) ) { continuar = false; }
             }
             break;
 
         case DETENER_LLENADO:
-            /* Lee el estado actual del depósito, y solo actúa si es "LLENADO" */
+            /* Lee el estado actual del depósito, y solo actúa si es "DEPOSITO_LLENADO" */
             if ( !estadoSistemaLeerDeposito(pEstadoSist, &estadoDeposito) ) { continuar = false; }
-            if (modo_manual & !emergencia & estadoDeposito == LLENADO)
+            if (modo_manual && !emergencia && estadoDeposito == DEPOSITO_LLENADO)
             { 
-                if ( !estadoSistemaEscribirDeposito(pEstadoSist, NORMAL) ) { continuar = false; }
+                if ( !estadoSistemaEscribirDeposito(pEstadoSist, DEPOSITO_NORMAL) ) { continuar = false; }
             }
             break;
 
         case INICIAR_VACIADO:
-            if (modo_manual & !emergencia)
+            if (modo_manual && !emergencia)
             {
-                if ( !estadoSistemaEscribirDeposito(pEstadoSist, VACIADO) ) { continuar = false; }
+                if ( !estadoSistemaEscribirDeposito(pEstadoSist, DEPOSITO_VACIADO) ) { continuar = false; }
             }
             break;
 
         case DETENER_VACIADO:
-            /* Lee el estado actual del depósito, y solo actúa si es "VACIADO" */
+            /* Lee el estado actual del depósito, y solo actúa si es "DEPOSITO_VACIADO" */
             if ( !estadoSistemaLeerDeposito(pEstadoSist, &estadoDeposito) ) { continuar = false; }
-            if (modo_manual & !emergencia & estadoDeposito == VACIADO)
+            if (modo_manual && !emergencia && estadoDeposito == DEPOSITO_VACIADO)
             { 
-                if ( !estadoSistemaEscribirDeposito(pEstadoSist, NORMAL) ) { continuar = false; }
+                if ( !estadoSistemaEscribirDeposito(pEstadoSist, DEPOSITO_NORMAL) ) { continuar = false; }
             }
             break;
 
@@ -172,13 +172,13 @@ void tareaComandosConsola(void* pParametros)
         case CONFIG_NIVEL_MINIMO:
             if (modo_manual)
             {
-                if ( !configSistemaEscribirConsumoMin(pConfigSist, valor) ) { continuar = false; }
+                if ( !configSistemaEscribirNivelMin(pConfigSist, valor) ) { continuar = false; }
             }
 
         case CONFIG_NIVEL_MAXIMO:
             if (modo_manual)
             {
-                if ( !configSistemaEscribirConsumoMax(pConfigSist, valor) ) { continuar = false; }
+                if ( !configSistemaEscribirNivelMax(pConfigSist, valor) ) { continuar = false; }
             }
 
         default:
