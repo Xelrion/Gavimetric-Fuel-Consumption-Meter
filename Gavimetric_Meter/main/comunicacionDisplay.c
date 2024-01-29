@@ -102,8 +102,10 @@ void tareaComunicacionDisplay(void* pParametros)
         paradaEmergenciaLeer(pEmergencia, &emergencia);
         /* Lee el último comando de petición de medidas del sistema */
         estadoSistemaLeerComando(pEstadoSist, &comando);
+        /* Lee el estado actual del depósito */
+        estadoSistemaLeerDeposito(pEstadoSist, &estadoDeposito);
         /* Lee el nivel actual del depósito */
-        estadoSistemaLeerDeposito(pEstadoSist, &nivelDeposito);
+        estadoSistemaLeerNivel(pEstadoSist, &nivelDeposito);
 
         /* NOTIFICACIÓN DE PARADA DE EMERGENCIA */
         if (emergencia) { notificar_emergencia(); }

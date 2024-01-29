@@ -102,7 +102,14 @@ void tareaComandosConsola(void* pParametros)
             break;
 
         case DETENER_PARADA_EMERGENCIA:
-            paradaEmergenciaDesactivar(pEmergencia);
+            if (modo_manual && emergencia) { paradaEmergenciaDesactivar(pEmergencia); }
+            break;
+
+        case PEDIR_MEDIDA_PUNTUAL:
+            if (modo_manual && !emergencia) 
+            { 
+                if ( !estadoSistemaEscribirComando(pEstadoSist, MEDIDA_MANUAL_PUNTUAL) ) { continuar = false; }
+            }
             break;
 
         case INICIAR_MEDIDA_CONTINUADA:

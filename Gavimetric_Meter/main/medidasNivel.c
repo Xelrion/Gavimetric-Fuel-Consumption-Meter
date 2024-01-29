@@ -177,13 +177,13 @@ void tareaMedidasNivel(void* pParametros)
         if ( !estadoSistemaLeerDeposito(pEstadoSist, &estado_deposito )) { continuar = false; }
         ESP_LOGI(pConfig->tag, "Timer periodo de medidas: %d", timer_periodo_medidas);
         /* Si se cumplen todas las condiciones y el periodo de toma de medidas ha finalizado, se envía la medida */
-        if (!paradaEmergencia && timer_expired(timer_periodo_medidas) && (estado_deposito == DEPOSITO_NORMAL))
+        if (!paradaEmergencia && timer_expired(timer_periodo_medidas) && timer_expired(timer_espera_estabilizacion) && (estado_deposito == DEPOSITO_NORMAL))
         {
             if (!bufferCircularMete(pMedidas, medida)) { continuar = false; }
             timer_start(&timer_periodo_medidas, periodo_medidas, pConfig->periodo);
         }
         /* Si no se cumplen, se limpia el buffer para eliminar medidas desactualizadas */
-        if (paradaEmergencia + (estado_deposito != DEPOSITO_NORMAL))
+        if (paradaEmergencia + timer_expired(timer_espera_estabilizacion) + (estado_deposito != DEPOSITO_NORMAL))
         {
             if (!bufferCircularLimpia(pMedidas)) { continuar = false; }
         }

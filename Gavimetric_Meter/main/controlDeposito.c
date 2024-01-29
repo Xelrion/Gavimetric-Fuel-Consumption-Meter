@@ -183,6 +183,8 @@ void deposito_a23 (void* params)
     valv_vac_open();
 
     if ( !estadoSistemaEscribirDeposito(pEstadoSist, DEPOSITO_VACIADO) ) { *(pParams->continuar) = false; }
+    /* Se inicia la espera de estabilización */
+    if ( !estadoSistemaEscribirEspera(pEstadoSist, INICIADA) ) { *(pParams->continuar) = false; }
 }
 
 void deposito_a32 (void* params)
