@@ -76,7 +76,7 @@ int deposito_c12 (void *params)
     emergencia = pParams->emergencia;
     if (pParams->estadoDeposito == DEPOSITO_LLENADO) { llenado = 1; }
     if (pParams->nivelDeposito == NIVEL_MINIMO) { nivel_min = 1; }
-
+    
     return !emergencia && (llenado + nivel_min);
 }
 
@@ -90,7 +90,7 @@ int deposito_c13 (void *params)
 
     emergencia = pParams->emergencia;
     if (pParams->estadoDeposito == DEPOSITO_VACIADO) { vaciado = 1; }
-
+    
     return !emergencia && vaciado;
 }
 
@@ -106,7 +106,7 @@ int deposito_c21 (void *params)
     emergencia = pParams->emergencia;
     if (pParams->estadoDeposito == DEPOSITO_NORMAL) { llenado_stop = 1; }
     if (pParams->nivelDeposito == NIVEL_MAXIMO) { nivel_max = 1; }
-
+    ESP_LOGI("controlDeposito: ", "Comprobada la tercera condición de estado");
     return emergencia + llenado_stop + nivel_max;
 }
 
@@ -144,7 +144,7 @@ int deposito_c32 (void *params)
     bool llenado = 0;
 
     if (pParams->estadoDeposito == DEPOSITO_LLENADO) { llenado = 1; }
-
+    
     return llenado;
 }
 
@@ -281,10 +281,10 @@ void tareaControlDeposito(void* pParametros)
 
     /* Bucle de presentación de medias */
     bool continuar = true;
-
+    
     /* Prepara los parámetros de entrada para las funciones de condición de transferencia */
     tareaControlDepositoParams_t pControlDepositoParams;
-    pControlDepositoParams.emergencia = 0;
+    pControlDepositoParams.emergencia = false;
     pControlDepositoParams.nivelDeposito = NIVEL_NORMAL;
     pControlDepositoParams.estadoDeposito = DEPOSITO_NORMAL;
     pControlDepositoParams.estadoSist = pEstadoSist;

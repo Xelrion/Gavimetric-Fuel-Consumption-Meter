@@ -135,7 +135,7 @@ void app_main(void)
 
     // Planifica cada tarea
     xTaskCreate(tareaMedidasNivel, TSKMEDIDASNIV_TAG, TSKMEDIDASNIV_STACK_WD, &tskMedidasNivel_info, TSKMEDIDASNIV_PRIORIDAD,  &tskMedidasNivel); tskMedidasNivel_config.activa = 1; // numTsk++;
-    xTaskCreate(tareaControlDeposito,   TSKCONTROLDEP_TAG,   TSKCONTROLDEP_STACK_WD,   &tskMedidasNivel_info,   TSKMEDIDASNIV_PRIORIDAD,    &tskMedidasNivel);   tskControlDeposito_config.activa = 1;   // numTsk++;
+    xTaskCreate(tareaControlDeposito,   TSKCONTROLDEP_TAG,   TSKCONTROLDEP_STACK_WD,   &tskControlDeposito_info,   TSKMEDIDASNIV_PRIORIDAD,    &tskControlDeposito);   tskControlDeposito_config.activa = 1;   // numTsk++;
     xTaskCreate(tareaConsumo,   TSKCONSUMO_TAG,   TSKCONSUMO_STACK_WD,   &tskConsumo_info,   TSKCONSUMO_PRIORIDAD,    &tskConsumo);   tskConsumo_config.activa = 1;   // numTsk++;
     xTaskCreate(tareaComandosConsola,   TSKCOMANDOSCONS_TAG,   TSKCOMANDOSCONS_STACK_WD,   &tskComandosConsola_info,   TSKCOMANDOSCONS_PRIORIDAD,    &tskComandosConsola);   tskComandosConsola_config.activa = 1;   // numTsk++;
     xTaskCreate(tareaComunicacionDisplay,   TSKCOMUNDISPLAY_TAG,   TSKCOMUNDISPLAY_STACK_WD,   &tskComunicacionDisplay_info,   TSKCOMUNDISPLAY_PRIORIDAD,    &tskComunicacionDisplay);   tskComunicacionDisplay_config.activa = 1;   // numTsk++;
