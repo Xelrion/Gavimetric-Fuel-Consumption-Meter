@@ -121,7 +121,6 @@ bool bufferCircularLleno( bufferCircular_t* pBuffer )
     if (xSemaphoreTake(pBuffer->mutex, (TickType_t) 10) == pdTRUE)
     {
         bufferLleno = (pBuffer->numElementos == NUMELEMENTOS);
-        xSemaphoreGive(pBuffer->mutex);
         pBuffer->err = BUFFER_OK;
         xSemaphoreGive(pBuffer->mutex);
     }
@@ -142,7 +141,6 @@ bool bufferCircularVacio( bufferCircular_t* pBuffer )
     if (xSemaphoreTake(pBuffer->mutex, (TickType_t) 10) == pdTRUE)
     {
         bufferVacio = (pBuffer->numElementos == 0);
-        xSemaphoreGive(pBuffer->mutex);
         pBuffer->err = BUFFER_OK;
         xSemaphoreGive(pBuffer->mutex);
     }
@@ -161,7 +159,6 @@ bool bufferCircularNumElementos( bufferCircular_t* pBuffer, int* pValor )
     if (xSemaphoreTake(pBuffer->mutex, (TickType_t) 10) == pdTRUE)
     {
         *pValor = (pBuffer->numElementos);
-        xSemaphoreGive(pBuffer->mutex);
         pBuffer->err = BUFFER_OK;
         xSemaphoreGive(pBuffer->mutex);
     }

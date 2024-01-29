@@ -25,7 +25,7 @@ static char* TAG = "comandosConsola";
  ***********************************************************************************************************/
 
 /* Lee el último comando recibido por la consola, y el valor asociado si se trata de configurar un parámetro del sistema */
-void lectura_comando( comandosConsola_t* comando, double* valor)
+void lectura_comando_valor( comandosConsola_t* comando, double* valor)
 {
     /* Nota: devolver comando y valor asociado si lo hubiera */
     /* Si no hay comando, devuelve -1 */
@@ -92,7 +92,7 @@ void tareaComandosConsola(void* pParametros)
         if (emergencia && !modo_manual) { modo_manual = true; }
 
         /* Lee el último comando recibido desde la consola, y su valor asociado, si los hubiera */
-        lectura_comando(&comando, &valor);
+        lectura_comando_valor(&comando, &valor);
 
         /* En función del comando recibido, ejecuta una tarea u otra */
         switch (comando)

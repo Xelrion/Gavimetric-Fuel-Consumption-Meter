@@ -147,13 +147,13 @@ void tareaConsumo(void* pParametros)
             /* Primer bucle: envía medidas al buffer de la consola (modo manual) */
             while (medidasDisponibles(pMedidas) & (comando == MEDIDA_MANUAL_PUNTUAL || comando == MEDIDA_MANUAL_CONTINUADA || comando == MEDIDA_OFF))
             {
-                if(!periodo_medidas_modif) { calculoConsumo( pMedidas, pConsumoConsola, periodo_medidas, &continuar); }
+                calculoConsumo( pMedidas, pConsumoConsola, periodo_medidas, &continuar);
                 ESP_LOGI("calculaConsumo", "BucleManual");
             }
             /* Segundo bucle: envía medidas al buffer del sistema remoto (modo remoto) */
             while (medidasDisponibles(pMedidas) && comando == MEDIDA_REMOTO)
             {
-                if(!periodo_medidas_modif) { calculoConsumo( pMedidas, pConsumoRemoto, periodo_medidas, &continuar); }
+                calculoConsumo( pMedidas, pConsumoRemoto, periodo_medidas, &continuar);
                 ESP_LOGI("calculaConsumo", "BucleRemoto");
             }
         }

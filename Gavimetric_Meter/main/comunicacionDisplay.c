@@ -81,9 +81,9 @@ void tareaComunicacionDisplay(void* pParametros)
     TickType_t activacionPrevia = xTaskGetTickCount();
 
     /* Estado del sistema */
-    estadoSistemaComando_t comando;
-    estadoSistemaDeposito_t estadoDeposito;
-    estadoSistemaNivel_t nivelDeposito;
+    estadoSistemaComando_t comando = MEDIDA_OFF;
+    estadoSistemaDeposito_t estadoDeposito = DEPOSITO_NORMAL;
+    estadoSistemaNivel_t nivelDeposito = NIVEL_NORMAL;
     bool emergencia;
 
     /* Bucle de comunicación con el display */
@@ -102,6 +102,8 @@ void tareaComunicacionDisplay(void* pParametros)
         paradaEmergenciaLeer(pEmergencia, &emergencia);
         /* Lee el último comando de petición de medidas del sistema */
         estadoSistemaLeerComando(pEstadoSist, &comando);
+        /* Lee el nivel actual del depósito */
+        estadoSistemaLeerDeposito(pEstadoSist, &nivelDeposito);
 
         /* NOTIFICACIÓN DE PARADA DE EMERGENCIA */
         if (emergencia) { notificar_emergencia(); }
@@ -120,7 +122,7 @@ void tareaComunicacionDisplay(void* pParametros)
         {
             if( !bufferCircularLimpia(pConsumoConsola) ) { continuar = false; }
         }
-        /* Si el modo de medida puntual está activo, solo se envía una medida a la consola y se actualiza el estado */
+        /* Si el modo de medida puntual está activo, solo se envía una medida a la consola y se actualiza el estado de comando de medidas */
         if (!emergencia && !bufferCircularVacio(pConsumoConsola) && comando == MEDIDA_MANUAL_PUNTUAL)
         {
             if( !bufferCircularSaca(pConsumoConsola, &medidaConsumo) ) { continuar = false; }

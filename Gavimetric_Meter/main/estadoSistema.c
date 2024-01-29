@@ -26,7 +26,6 @@ bool estadoSistemaCrea( estadoSistema_t* pEstadoSist, const char* etiqueta)
         pEstadoSist->esperaEstabilizacion = DESACTIVADA;
         pEstadoSist->nivelDeposito = NIVEL_NORMAL;
         pEstadoSist->estadoDeposito = DEPOSITO_NORMAL;
-        pEstadoSist->peticionMedidas = 0;
         pEstadoSist->tag = etiqueta;
         pEstadoSist->err = EST_SIST_OK;
     }
@@ -131,29 +130,6 @@ bool estadoSistemaLeerDeposito( estadoSistema_t* pEstadoSist, estadoSistemaDepos
     }
 
     return (pEstadoSist->err == EST_SIST_OK);
-}
-
-/* Lee el estado de la petición de medidas remotas */
-bool estadoSistemaLeerPeticion( estadoSistema_t* pEstadoSist )
-{
-    bool peticionActiva = false;
-
-    if (xSemaphoreTake(pEstadoSist->mutex, (TickType_t) 10) == pdTRUE)
-    {
-        peticionActiva = pEstadoSist->peticionMedidas;
-        ESP_LOGD(pEstadoSist->tag, "Petición de medidas del sist. remoto: %d", (pEstadoSist->peticionMedidas));
-        pEstadoSist->err = EST_SIST_OK;
-        xSemaphoreGive(pEstadoSist->mutex);
-    }
-    else
-    {
-        ESP_LOGE(pEstadoSist->tag, "Fallo al intentar tomar mutex");
-        ESP_LOGE(pEstadoSist->tag, "para leer el estado de la petición de medidas remotas: %d", (pEstadoSist->peticionMedidas));
-
-        pEstadoSist->err = EST_SIST_ERR_MUTEX;
-    }
-
-    return peticionActiva;
 }
 
 /* Modifica el estado del comando */

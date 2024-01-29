@@ -31,6 +31,12 @@ static char* TAG = "comunicacionRemoto";
 #define SIGNAL_LEVEL_ACTIVE 1
 
 /***********************************************************************************************************
+ * Valor máximo de la señal analógica de salida
+ ***********************************************************************************************************/
+
+#define VOLTAJE_MAXIMO 10.00
+
+/***********************************************************************************************************
  * Funciones de comunicación con el sistema remoto
  ***********************************************************************************************************/
 
@@ -104,9 +110,8 @@ void tareaComunicacionRemoto(void* pParametros)
     bool emergencia;
 
     /* Bucle de comunicación con el display */
-    bool continuar = true;
     double medidaConsumo = 0;
-    double voltajeMaximo = 10;
+    bool continuar = true;
 
     while ( continuar )
     {
@@ -135,7 +140,7 @@ void tareaComunicacionRemoto(void* pParametros)
         while (!emergencia && !bufferCircularVacio(pConsumoRemoto) && comando == MEDIDA_REMOTO && peticionMedidas)
         {
             if( !bufferCircularSaca(pConsumoRemoto, &medidaConsumo) ) { continuar = false; }
-            medidaConsumo = medida_analogica(medidaConsumo, consumoMaximo, voltajeMaximo);
+            medidaConsumo = medida_analogica(medidaConsumo, consumoMaximo, VOLTAJE_MAXIMO);
             enviar_consumo(medidaConsumo);
         }
     }
