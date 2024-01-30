@@ -9,6 +9,7 @@
 
 #define LOG_LOCAL_LEVEL ESP_LOG_INFO
 #include "esp_log.h"
+#include "esp_timer.h"
 
 #include "myTaskConfig.h"
 #include "bufferCircular.h"
@@ -90,6 +91,11 @@ void tareaComunicacionDisplay(void* pParametros)
     bool continuar = true;
     double medidaConsumo = 0;
 
+    /* DEBUG: TIEMPO DE EJECUCIÓN */
+    uint64_t startTime;
+    uint64_t endTime;
+    uint64_t executionTime;
+
     while( continuar )
     {
         /* Espera a la siguiente activación */  
@@ -97,6 +103,9 @@ void tareaComunicacionDisplay(void* pParametros)
 
         pConfig->numActivaciones++;
         ESP_LOGD(pConfig->tag, "Numero de activaciones: %lu", pConfig->numActivaciones);
+
+        /* DEBUG: TIEMPO DE EJECUCIÓN */
+        startTime = esp_timer_get_time();
 
         /* Comprueba si la parada de emergencia se encuentra activa */
         paradaEmergenciaLeer(pEmergencia, &emergencia);
@@ -137,5 +146,10 @@ void tareaComunicacionDisplay(void* pParametros)
             if( !bufferCircularSaca(pConsumoConsola, &medidaConsumo) ) { continuar = false; }
             actualizar_consumo(medidaConsumo);
         }
+
+        /* DEBUG: TIEMPO DE EJECUCIÓN */
+        endTime = esp_timer_get_time();
+        executionTime = endTime - startTime;
+        printf("Duración de tarea comunicacionDisplay: %lld microsegundos\n", executionTime);
     }
 }

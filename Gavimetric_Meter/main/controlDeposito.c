@@ -10,6 +10,7 @@
 
 #define LOG_LOCAL_LEVEL ESP_LOG_INFO
 #include "esp_log.h"
+#include "esp_timer.h"
 
 #include "myTaskConfig.h"
 #include "estadoSistema.h"
@@ -290,12 +291,20 @@ void tareaControlDeposito(void* pParametros)
     pControlDepositoParams.estadoSist = pEstadoSist;
     pControlDepositoParams.continuar = &continuar;
 
+    /* DEBUG: TIEMPO DE EJECUCIÓN */
+    uint64_t startTime;
+    uint64_t endTime;
+    uint64_t executionTime;
+
     while( continuar )
     {
         /* Espera a la siguiente activación */  
         xTaskDelayUntil(&activacionPrevia, periodo);
         pConfig->numActivaciones++;
         ESP_LOGD(pConfig->tag, "Numero de activaciones: %lu", pConfig->numActivaciones);
+
+        /* DEBUG: TIEMPO DE EJECUCIÓN */
+        startTime = esp_timer_get_time();
 
         /* Comprueba el estado actual del sistema */
         if ( !paradaEmergenciaLeer(pEmergencia, &pControlDepositoParams.emergencia) ) { continuar = false; }
@@ -304,5 +313,10 @@ void tareaControlDeposito(void* pParametros)
 
         /* Actualiza la máquina de estados según el estado leído */
         fsm_update (fsm_controlDeposito, (void*) &pControlDepositoParams);
+
+        /* DEBUG: TIEMPO DE EJECUCIÓN */
+        endTime = esp_timer_get_time();
+        executionTime = endTime - startTime;
+        printf("Duración de tarea controlDeposito: %lld microsegundos\n", executionTime);
     }
 }

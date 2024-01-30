@@ -39,32 +39,32 @@
 // Nombre, periodo, tamaño de stack y prioridad
 
 static const char* TSKCONTROLDEP_TAG = "ControlDeposito";
-#define TSKCONTROLDEP_PERIODO_MS 500
+#define TSKCONTROLDEP_PERIODO_MS  10000
 #define TSKCONTROLDEP_STACK_WD  2048
 #define TSKCONTROLDEP_PRIORIDAD    7
 
 static const char* TSKMEDIDASNIV_TAG = "MedidasNivel";
-#define TSKMEDIDASNIV_PERIODO_MS 500
+#define TSKMEDIDASNIV_PERIODO_MS  10000
 #define TSKMEDIDASNIV_STACK_WD  2048
 #define TSKMEDIDASNIV_PRIORIDAD    6
 
 static const char* TSKCONSUMO_TAG = "CalculaConsumo";
-#define TSKCONSUMO_PERIODO_MS 500
+#define TSKCONSUMO_PERIODO_MS  10000
 #define TSKCONSUMO_STACK_WD  2048
 #define TSKCONSUMO_PRIORIDAD    5
 
 static const char* TSKCOMANDOSCONS_TAG = "ComandosConsola";
-#define TSKCOMANDOSCONS_PERIODO_MS 500
+#define TSKCOMANDOSCONS_PERIODO_MS  10000
 #define TSKCOMANDOSCONS_STACK_WD  2048
 #define TSKCOMANDOSCONS_PRIORIDAD    4
 
 static const char* TSKCOMUNDISPLAY_TAG = "ComunicacionDisplay";
-#define TSKCOMUNDISPLAY_PERIODO_MS 500
+#define TSKCOMUNDISPLAY_PERIODO_MS  10000
 #define TSKCOMUNDISPLAY_STACK_WD  2048
 #define TSKCOMUNDISPLAY_PRIORIDAD    3
 
 static const char* TSKCOMUNREMOTO_TAG = "ComunicacionRemoto";
-#define TSKCOMUNREMOTO_PERIODO_MS 500
+#define TSKCOMUNREMOTO_PERIODO_MS  10000
 #define TSKCOMUNREMOTO_STACK_WD  2048
 #define TSKCOMUNREMOTO_PRIORIDAD    2
 
@@ -140,7 +140,4 @@ void app_main(void)
     xTaskCreate(tareaComandosConsola,   TSKCOMANDOSCONS_TAG,   TSKCOMANDOSCONS_STACK_WD,   &tskComandosConsola_info,   TSKCOMANDOSCONS_PRIORIDAD,    &tskComandosConsola);   tskComandosConsola_config.activa = 1;   // numTsk++;
     xTaskCreate(tareaComunicacionDisplay,   TSKCOMUNDISPLAY_TAG,   TSKCOMUNDISPLAY_STACK_WD,   &tskComunicacionDisplay_info,   TSKCOMUNDISPLAY_PRIORIDAD,    &tskComunicacionDisplay);   tskComunicacionDisplay_config.activa = 1;   // numTsk++;
     xTaskCreate(tareaComunicacionRemoto,   TSKCOMUNREMOTO_TAG,   TSKCOMUNREMOTO_STACK_WD,   &tskComunicacionRemoto_info,   TSKCOMUNREMOTO_PRIORIDAD,    &tskComunicacionRemoto);   tskComunicacionRemoto_config.activa = 1;   // numTsk++;
-
-    vTaskDelay(10);
-
 }

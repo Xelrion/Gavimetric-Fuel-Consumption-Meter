@@ -1,0 +1,18 @@
+[1/5] cmd.exe /C "cd /D E:\Datos\Proyectos\RTOS\Gavimetric-Fuel-Consumption-Meter\gavimetric_meter\build\esp-idf\esptool_py && C:\Users\david\.espressif\python_env\idf5.1_py3.11_env\Scripts\python.exe C:/Users/david/esp/esp-idf/components/partition_table/check_sizes.py --offset 0x8000 partition --type app E:/Datos/Proyectos/RTOS/Gavimetric-Fuel-Consumption-Meter/gavimetric_meter/build/partition_table/partition-table.bin E:/Datos/Proyectos/RTOS/Gavimetric-Fuel-Consumption-Meter/gavimetric_meter/build/gavimetric_meter.bin"
+gavimetric_meter.bin binary size 0x2d130 bytes. Smallest app partition is 0x100000 bytes. 0xd2ed0 bytes (82%) free.
+[2/5] Performing build step for 'bootloader'
+[1/1] cmd.exe /C "cd /D E:\Datos\Proyectos\RTOS\Gavimetric-Fuel-Consumption-Meter\gavimetric_meter\build\bootloader\esp-idf\esptool_py && C:\Users\david\.espressif\python_env\idf5.1_py3.11_env\Scripts\python.exe C:/Users/david/esp/esp-idf/components/partition_table/check_sizes.py --offset 0x8000 bootloader 0x1000 E:/Datos/Proyectos/RTOS/Gavimetric-Fuel-Consumption-Meter/gavimetric_meter/build/bootloader/bootloader.bin"
+Bootloader binary size 0x6810 bytes. 0x7f0 bytes (7%) free.
+[2/3] cmd.exe /C "cd /D C:\Users\david\esp\esp-idf\components\esptool_py && C:\Users\david\.espressif\tools\cmake\3.24.0\bin\cmake.exe -D IDF_PATH=C:/Users/david/esp/esp-idf -D SERIAL_TOOL=C:/Users/david/.espressif/python_env/idf5.1_py3.11_env/Scripts/python.exe;;C:/Users/david/esp/esp-idf/components/esptool_py/esptool/esptool.py;--chip;esp32 -D SERIAL_TOOL_ARGS=--before=default_reset;--after=hard_reset;write_flash;@flash_args -D WORKING_DIRECTORY=E:/Datos/Proyectos/RTOS/Gavimetric-Fuel-Consumption-Meter/gavimetric_meter/build -P C:/Users/david/esp/esp-idf/components/esptool_py/run_serial_tool.cmake"
+esptool.py --chip esp32 -p PORT -b 460800 --before=default_reset --after=hard_reset write_flash --flash_mode dio --flash_freq 40m --flash_size 2MB 0x1000 bootloader/bootloader.bin 0x10000 gavimetric_meter.bin 0x8000 partition_table/partition-table.bin
+esptool.py v4.7.dev3
+Serial port PORT
+
+A fatal error occurred: Could not open PORT, the port is busy or doesn't exist.
+(could not open port 'PORT': FileNotFoundError(2, 'El sistema no puede encontrar el archivo especificado.', None, 2))
+
+Hint: Check if the port is correct and ESP connected
+
+FAILED: CMakeFiles/flash E:/Datos/Proyectos/RTOS/Gavimetric-Fuel-Consumption-Meter/gavimetric_meter/build/CMakeFiles/flash 
+cmd.exe /C "cd /D C:\Users\david\esp\esp-idf\components\esptool_py && C:\Users\david\.espressif\tools\cmake\3.24.0\bin\cmake.exe -D IDF_PATH=C:/Users/david/esp/esp-idf -D SERIAL_TOOL=C:/Users/david/.espressif/python_env/idf5.1_py3.11_env/Scripts/python.exe;;C:/Users/david/esp/esp-idf/components/esptool_py/esptool/esptool.py;--chip;esp32 -D SERIAL_TOOL_ARGS=--before=default_reset;--after=hard_reset;write_flash;@flash_args -D WORKING_DIRECTORY=E:/Datos/Proyectos/RTOS/Gavimetric-Fuel-Consumption-Meter/gavimetric_meter/build -P C:/Users/david/esp/esp-idf/components/esptool_py/run_serial_tool.cmake"
+ninja: build stopped: subcommand failed.

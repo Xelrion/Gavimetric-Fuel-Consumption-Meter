@@ -10,6 +10,7 @@
 
 #define LOG_LOCAL_LEVEL ESP_LOG_NONE
 #include "esp_log.h"
+#include "esp_timer.h"
 
 #include "myTaskConfig.h"
 #include "bufferCircular.h"
@@ -117,12 +118,20 @@ void tareaConsumo(void* pParametros)
     bool continuar = true;
     bool periodo_medidas_modif = false; // si en esta ejecución se ha modificado el periodo de medidas, no se calcula el consumo para evitar datos erróneos
 
+    /* DEBUG: TIEMPO DE EJECUCIÓN */
+    uint64_t startTime;
+    uint64_t endTime;
+    uint64_t executionTime;
+
     while( continuar )
     {
         /* Espera a la siguiente activación */  
         xTaskDelayUntil(&activacionPrevia, periodo);
         pConfig->numActivaciones++;
         ESP_LOGD(pConfig->tag, "Numero de activaciones: %lu", pConfig->numActivaciones);
+
+        /* DEBUG: TIEMPO DE EJECUCIÓN */
+        startTime = esp_timer_get_time();
 
         /* ACTUALIZACIÓN DEL PERIODO CONFIGURABLE DE TOMA DE MEDIDAS */
         /* Comprueba si el periodo de toma de medidas ha sido modificado en esta ejecución */
@@ -157,5 +166,10 @@ void tareaConsumo(void* pParametros)
                 ESP_LOGI("calculaConsumo", "BucleRemoto");
             }
         }
+
+        /* DEBUG: TIEMPO DE EJECUCIÓN */
+        endTime = esp_timer_get_time();
+        executionTime = endTime - startTime;
+        printf("Duración de tarea calculaConsumo: %lld microsegundos\n", executionTime);
     }
 }

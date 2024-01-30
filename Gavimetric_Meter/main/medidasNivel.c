@@ -9,6 +9,7 @@
 
 #define LOG_LOCAL_LEVEL ESP_LOG_NONE
 #include "esp_log.h"
+#include "esp_timer.h"
 
 #include "bufferCircular.h"
 #include "estadoSistema.h"
@@ -106,6 +107,11 @@ void tareaMedidasNivel(void* pParametros)
     int timer_periodo_medidas = 0;  // cada vez que llega a 0, se toma una medida y se reinicia. Configurable por el usuario
     int timer_espera_estabilizacion = 0;    // mientras esté activo, no se tomarán medidas. Al desactivarse, se modifica el estado de espera
 
+    /* DEBUG: TIEMPO DE EJECUCIÓN */
+    uint64_t startTime;
+    uint64_t endTime;
+    uint64_t executionTime;
+
     while( continuar )
     {
         /* Espera a la siguiente activación */  
@@ -114,6 +120,8 @@ void tareaMedidasNivel(void* pParametros)
         pConfig->numActivaciones++;
         ESP_LOGD(pConfig->tag, "Numero de activaciones: %lu", pConfig->numActivaciones);
 
+        /* DEBUG: TIEMPO DE EJECUCIÓN */
+        startTime = esp_timer_get_time();
 
         /* ACTUALIZACIÓN DEL PERIODO CONFIGURABLE DE TOMA DE MEDIDAS */
         /* Comprueba si el periodo de toma de medidas ha cambiado en esta ejecución */
@@ -190,9 +198,14 @@ void tareaMedidasNivel(void* pParametros)
 
 
         /* ACTUALIZACIÓN DEL TIMER DE ESPERA DE ESTABILIZACIÓN Y DE PERIODO DE TOMA DE MEDIDAS*/
-        /* Actualiza el timer de periodo de medidas*/
+        /* Actualiza el timer de periodo de medidas */
         timer_next(&timer_periodo_medidas);
         /* Actualiza el timer de espera de estabilización */
         timer_next(&timer_espera_estabilizacion);
+
+        /* DEBUG: TIEMPO DE EJECUCIÓN */
+        endTime = esp_timer_get_time();
+        executionTime = endTime - startTime;
+        printf("Duración de tarea medidasNivel: %lld microsegundos\n", executionTime);
     }
 }

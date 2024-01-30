@@ -10,6 +10,7 @@
 
 #define LOG_LOCAL_LEVEL ESP_LOG_INFO
 #include "esp_log.h"
+#include "esp_timer.h"
 
 #include "myTaskConfig.h"
 #include "estadoSistema.h"
@@ -77,6 +78,11 @@ void tareaComandosConsola(void* pParametros)
     bool continuar = true;
     bool modo_manual = false;   // estado interno: establece comunicación con la consola de control (manual) o con el sistema remoto (automático)
 
+    /* DEBUG: TIEMPO DE EJECUCIÓN */
+    uint64_t startTime;
+    uint64_t endTime;
+    uint64_t executionTime;
+
     while( continuar )
     {
         /* Espera a la siguiente activación */  
@@ -84,6 +90,9 @@ void tareaComandosConsola(void* pParametros)
 
         pConfig->numActivaciones++;
         ESP_LOGD(pConfig->tag, "Numero de activaciones: %lu", pConfig->numActivaciones);
+
+        /* DEBUG: TIEMPO DE EJECUCIÓN */
+        startTime = esp_timer_get_time();
 
         /* Comprueba si la parada de emergencia se encuentra activa */
         paradaEmergenciaLeer(pEmergencia, &emergencia);
@@ -196,5 +205,10 @@ void tareaComandosConsola(void* pParametros)
         default:
             break;
         }
+
+        /* DEBUG: TIEMPO DE EJECUCIÓN */
+        endTime = esp_timer_get_time();
+        executionTime = endTime - startTime;
+        printf("Duración de tarea comandosConsola: %lld microsegundos\n", executionTime);
     }
 }

@@ -9,6 +9,7 @@
 
 #define LOG_LOCAL_LEVEL ESP_LOG_INFO
 #include "esp_log.h"
+#include "esp_timer.h"
 
 #include "myTaskConfig.h"
 #include "driver/gpio.h"
@@ -109,9 +110,17 @@ void tareaComunicacionRemoto(void* pParametros)
     bool peticionMedidas = false;
     bool emergencia;
 
+    /* Configuración del pin digital */
+    gpio_set_pull_mode(GPIO_PIN_SIGNAL, GPIO_PULLDOWN_ONLY);
+
     /* Bucle de comunicación con el display */
     double medidaConsumo = 0;
     bool continuar = true;
+
+    /* DEBUG: TIEMPO DE EJECUCIÓN */
+    uint64_t startTime;
+    uint64_t endTime;
+    uint64_t executionTime;
 
     while ( continuar )
     {
@@ -120,6 +129,9 @@ void tareaComunicacionRemoto(void* pParametros)
 
         pConfig->numActivaciones++;
         ESP_LOGD(pConfig->tag, "Numero de activaciones: %lu", pConfig->numActivaciones);
+
+        /* DEBUG: TIEMPO DE EJECUCIÓN */
+        startTime = esp_timer_get_time();
 
         /* Comprueba si la parada de emergencia se encuentra activa */
         paradaEmergenciaLeer(pEmergencia, &emergencia);
@@ -143,5 +155,10 @@ void tareaComunicacionRemoto(void* pParametros)
             medidaConsumo = medida_analogica(medidaConsumo, consumoMaximo, VOLTAJE_MAXIMO);
             enviar_consumo(medidaConsumo);
         }
+
+        /* DEBUG: TIEMPO DE EJECUCIÓN */
+        endTime = esp_timer_get_time();
+        executionTime = endTime - startTime;
+        printf("Duración de tarea comunicacionRemoto: %lld microsegundos\n", executionTime);
     }
 }
