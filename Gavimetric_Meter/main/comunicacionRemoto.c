@@ -42,7 +42,7 @@ static char* TAG = "comunicacionRemoto";
 #define VOLTAJE_MAXIMO 10.00
 
 /***********************************************************************************************************
- * Funciones de comunicación con el sistema remoto
+ * Implementación de hardware: Funciones de comunicación con el sistema remoto
  ***********************************************************************************************************/
 
 /* Envía una medida de consumo en forma de señal analógica, de entre 0 y 10 voltios */

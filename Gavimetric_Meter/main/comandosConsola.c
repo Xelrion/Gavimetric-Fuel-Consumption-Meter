@@ -22,13 +22,13 @@
 static char* TAG = "comandosConsola";
 
 /***********************************************************************************************************
- * Funciones de lectura de comandos
+ * Implementación de hardware: Funciones de lectura de comandos
  ***********************************************************************************************************/
 
 /* Lee el último comando recibido por la consola, y el valor asociado si se trata de configurar un parámetro del sistema */
 void lectura_comando_valor( comandosConsola_t* comando, double* valor)
 {
-    /* Nota: devolver comando y valor asociado si lo hubiera */
+    /* Devuelve el último comando recibido y su valor asociado si lo hubiera */
     /* Si no hay comando, devuelve -1 */
     *comando = -1;
     *valor = 100;

@@ -22,7 +22,7 @@
 static char* TAG = "controlDeposito";
 
 /***********************************************************************************************************
- * Funciones de control del depósito
+ * Implementación de hardware: Funciones de control del depósito
  ***********************************************************************************************************/
 
 /* Activación de la bomba eléctrica */

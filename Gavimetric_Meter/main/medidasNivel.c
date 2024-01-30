@@ -21,13 +21,13 @@
 static char* TAG = "medidasNivel";
 
 /***********************************************************************************************************
- * Funciones de lectura de la báscula
+ * Implementación de hardware: Funciones de lectura de la báscula
  ***********************************************************************************************************/
 
 /* Función de petición de medidas a la báscula */
 double medida_bascula()
 {
-    /* Nota: devolver valor de medida de la báscula */
+    /* Implementación de hardware: devolver valor de medida de la báscula */
     return 50;
 }
 

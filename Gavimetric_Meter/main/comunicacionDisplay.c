@@ -26,7 +26,7 @@ static char* TAG = "comunicacionDisplay";
 #define LIMITE_DISPLAY 10
 
 /***********************************************************************************************************
- * Funciones de comunicación con el display
+ * Implementación de hardware: Funciones de comunicación con el display
  ***********************************************************************************************************/
 
 void actualizar_consumo( double medidasConsumo )
