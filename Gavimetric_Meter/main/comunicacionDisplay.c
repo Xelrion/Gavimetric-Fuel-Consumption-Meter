@@ -7,9 +7,9 @@
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
 
-#define LOG_LOCAL_LEVEL ESP_LOG_INFO
+#define LOG_LOCAL_LEVEL ESP_LOG_NONE
 #include "esp_log.h"
-#include "esp_timer.h"
+//#include "esp_timer.h"
 
 #include "myTaskConfig.h"
 #include "bufferCircular.h"
@@ -20,6 +20,10 @@
 
 /* Etiqueta para depuración */
 static char* TAG = "comunicacionDisplay";
+
+/* Límite de ejecuciones del bucle de cálculo de consumo */
+// Para que el sistema sea determinista, determina cuántas medidas se pueden calcular en una misma ejecución de la tarea.
+#define LIMITE_DISPLAY 10
 
 /***********************************************************************************************************
  * Funciones de comunicación con el display
@@ -90,11 +94,12 @@ void tareaComunicacionDisplay(void* pParametros)
     /* Bucle de comunicación con el display */
     bool continuar = true;
     double medidaConsumo = 0;
+    int limite_consumo = 0; // si se supera el límite de medidas de consumo calculadas en esta ejecución, el bucle while termina
 
     /* DEBUG: TIEMPO DE EJECUCIÓN */
-    uint64_t startTime;
-    uint64_t endTime;
-    uint64_t executionTime;
+    //uint64_t startTime;
+    //uint64_t endTime;
+    //uint64_t executionTime;
 
     while( continuar )
     {
@@ -105,7 +110,7 @@ void tareaComunicacionDisplay(void* pParametros)
         ESP_LOGD(pConfig->tag, "Numero de activaciones: %lu", pConfig->numActivaciones);
 
         /* DEBUG: TIEMPO DE EJECUCIÓN */
-        startTime = esp_timer_get_time();
+        //startTime = esp_timer_get_time();
 
         /* Comprueba si la parada de emergencia se encuentra activa */
         paradaEmergenciaLeer(pEmergencia, &emergencia);
@@ -141,15 +146,18 @@ void tareaComunicacionDisplay(void* pParametros)
             if( !estadoSistemaEscribirComando(pEstadoSist, MEDIDA_OFF) ) { continuar = false; }
         }
         /* Si el modo de medida continuada está activo, se envían todas las medidas disponibles a la consola */
+        limite_consumo = 0;
         while (!emergencia && !bufferCircularVacio(pConsumoConsola) && comando == MEDIDA_MANUAL_CONTINUADA)
         {
             if( !bufferCircularSaca(pConsumoConsola, &medidaConsumo) ) { continuar = false; }
             actualizar_consumo(medidaConsumo);
+            limite_consumo++;
+            if (limite_consumo >= LIMITE_DISPLAY) { break; }
         }
 
         /* DEBUG: TIEMPO DE EJECUCIÓN */
-        endTime = esp_timer_get_time();
-        executionTime = endTime - startTime;
-        printf("Duración de tarea comunicacionDisplay: %lld microsegundos\n", executionTime);
+        //endTime = esp_timer_get_time();
+        //executionTime = endTime - startTime;
+        //ESP_LOGD(pConfig->tag, "Duración de tarea: %lld microsegundos\n", executionTime);
     }
 }

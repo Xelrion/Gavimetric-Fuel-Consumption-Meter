@@ -1,7 +1,7 @@
 {
     "version":            "1",
     "project_name":       "gavimetric_meter",
-    "project_version":    "5874729-dirty",
+    "project_version":    "52295ee-dirty",
     "project_path":       "E:/Datos/Proyectos/RTOS/Gavimetric-Fuel-Consumption-Meter/gavimetric_meter",
     "idf_path":           "C:/Users/david/esp/esp-idf",
     "build_dir":          "E:/Datos/Proyectos/RTOS/Gavimetric-Fuel-Consumption-Meter/gavimetric_meter/build",

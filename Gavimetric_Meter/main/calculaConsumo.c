@@ -10,7 +10,7 @@
 
 #define LOG_LOCAL_LEVEL ESP_LOG_NONE
 #include "esp_log.h"
-#include "esp_timer.h"
+//#include "esp_timer.h"
 
 #include "myTaskConfig.h"
 #include "bufferCircular.h"
@@ -20,6 +20,10 @@
 
 /* Etiqueta para depuración */
 static char* TAG = "calculaConsumo";
+
+/* Límite de ejecuciones del bucle de cálculo de consumo */
+// Para que el sistema sea determinista, determina cuántas medidas se pueden calcular en una misma ejecución de la tarea.
+#define LIMITE_CONSUMO 10
 
 /***********************************************************************************************************
  * Funciones de cálculo de medidas
@@ -117,11 +121,12 @@ void tareaConsumo(void* pParametros)
     /* Bucle de cálculo de consumo */
     bool continuar = true;
     bool periodo_medidas_modif = false; // si en esta ejecución se ha modificado el periodo de medidas, no se calcula el consumo para evitar datos erróneos
+    int limite_consumo = 0; // si se supera el límite de medidas de consumo calculadas en esta ejecución, el bucle while termina
 
     /* DEBUG: TIEMPO DE EJECUCIÓN */
-    uint64_t startTime;
-    uint64_t endTime;
-    uint64_t executionTime;
+    //uint64_t startTime;
+    //uint64_t endTime;
+    //uint64_t executionTime;
 
     while( continuar )
     {
@@ -131,7 +136,7 @@ void tareaConsumo(void* pParametros)
         ESP_LOGD(pConfig->tag, "Numero de activaciones: %lu", pConfig->numActivaciones);
 
         /* DEBUG: TIEMPO DE EJECUCIÓN */
-        startTime = esp_timer_get_time();
+        //startTime = esp_timer_get_time();
 
         /* ACTUALIZACIÓN DEL PERIODO CONFIGURABLE DE TOMA DE MEDIDAS */
         /* Comprueba si el periodo de toma de medidas ha sido modificado en esta ejecución */
@@ -153,23 +158,28 @@ void tareaConsumo(void* pParametros)
         /* Si se ha modificado el periodo de medidas en esta ejecución, no se calculará el consumo para evitar utilizar datos erróneos del buffer*/
         if(!periodo_medidas_modif)
         {
+            limite_consumo = 0;
             /* Primer bucle: envía medidas al buffer de la consola (modo manual) */
             while (medidasDisponibles(pMedidas) & (comando == MEDIDA_MANUAL_PUNTUAL || comando == MEDIDA_MANUAL_CONTINUADA || comando == MEDIDA_OFF))
             {
                 calculoConsumo( pMedidas, pConsumoConsola, periodo_medidas, &continuar);
-                ESP_LOGI("calculaConsumo", "BucleManual");
+                ESP_LOGI(pConfig->tag, "BucleManual");
+                limite_consumo++;
+                if (limite_consumo >= LIMITE_CONSUMO) { break; }
             }
             /* Segundo bucle: envía medidas al buffer del sistema remoto (modo remoto) */
             while (medidasDisponibles(pMedidas) && comando == MEDIDA_REMOTO)
             {
                 calculoConsumo( pMedidas, pConsumoRemoto, periodo_medidas, &continuar);
-                ESP_LOGI("calculaConsumo", "BucleRemoto");
+                ESP_LOGI(pConfig->tag, "BucleRemoto");
+                limite_consumo++;
+                if (limite_consumo >= LIMITE_CONSUMO) { break; }
             }
         }
 
         /* DEBUG: TIEMPO DE EJECUCIÓN */
-        endTime = esp_timer_get_time();
-        executionTime = endTime - startTime;
-        printf("Duración de tarea calculaConsumo: %lld microsegundos\n", executionTime);
+        //endTime = esp_timer_get_time();
+        //executionTime = endTime - startTime;
+        //ESP_LOGD(pConfig->tag, "Duración de tarea: %lld microsegundos\n", executionTime);
     }
 }

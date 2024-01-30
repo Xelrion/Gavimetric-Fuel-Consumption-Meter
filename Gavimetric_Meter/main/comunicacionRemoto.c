@@ -7,9 +7,9 @@
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
 
-#define LOG_LOCAL_LEVEL ESP_LOG_INFO
+#define LOG_LOCAL_LEVEL ESP_LOG_NONE
 #include "esp_log.h"
-#include "esp_timer.h"
+//#include "esp_timer.h"
 
 #include "myTaskConfig.h"
 #include "driver/gpio.h"
@@ -21,6 +21,10 @@
 
 /* Etiqueta para depuración */
 static char* TAG = "comunicacionRemoto";
+
+/* Límite de ejecuciones del bucle de cálculo de consumo */
+// Para que el sistema sea determinista, determina cuántas medidas se pueden calcular en una misma ejecución de la tarea.
+#define LIMITE_REMOTO 10
 
 /***********************************************************************************************************
  * Salida digital del sistema remoto
@@ -116,11 +120,12 @@ void tareaComunicacionRemoto(void* pParametros)
     /* Bucle de comunicación con el display */
     double medidaConsumo = 0;
     bool continuar = true;
+    int limite_consumo = 0; // si se supera el límite de medidas de consumo calculadas en esta ejecución, el bucle while termina
 
     /* DEBUG: TIEMPO DE EJECUCIÓN */
-    uint64_t startTime;
-    uint64_t endTime;
-    uint64_t executionTime;
+    //uint64_t startTime;
+    //uint64_t endTime;
+    //uint64_t executionTime;
 
     while ( continuar )
     {
@@ -131,7 +136,7 @@ void tareaComunicacionRemoto(void* pParametros)
         ESP_LOGD(pConfig->tag, "Numero de activaciones: %lu", pConfig->numActivaciones);
 
         /* DEBUG: TIEMPO DE EJECUCIÓN */
-        startTime = esp_timer_get_time();
+        //startTime = esp_timer_get_time();
 
         /* Comprueba si la parada de emergencia se encuentra activa */
         paradaEmergenciaLeer(pEmergencia, &emergencia);
@@ -149,16 +154,19 @@ void tareaComunicacionRemoto(void* pParametros)
             if( !bufferCircularLimpia(pConsumoRemoto) ) { continuar = false; }
         }
         /* Si el modo automático y la señal de petición están activos, se envían todas las medidas disponibles al sistema remoto */
+        limite_consumo = 0;
         while (!emergencia && !bufferCircularVacio(pConsumoRemoto) && comando == MEDIDA_REMOTO && peticionMedidas)
         {
             if( !bufferCircularSaca(pConsumoRemoto, &medidaConsumo) ) { continuar = false; }
             medidaConsumo = medida_analogica(medidaConsumo, consumoMaximo, VOLTAJE_MAXIMO);
             enviar_consumo(medidaConsumo);
+            limite_consumo++;
+            if (limite_consumo >= LIMITE_REMOTO) { break; }
         }
 
         /* DEBUG: TIEMPO DE EJECUCIÓN */
-        endTime = esp_timer_get_time();
-        executionTime = endTime - startTime;
-        printf("Duración de tarea comunicacionRemoto: %lld microsegundos\n", executionTime);
+        //endTime = esp_timer_get_time();
+        //executionTime = endTime - startTime;
+        //ESP_LOGD(pConfig->tag, "Duración de tarea: %lld microsegundos\n", executionTime);
     }
 }

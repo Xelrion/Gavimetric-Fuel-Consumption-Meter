@@ -8,9 +8,9 @@
 #include "freertos/task.h"
 #include "driver/gpio.h"
 
-#define LOG_LOCAL_LEVEL ESP_LOG_INFO
+#define LOG_LOCAL_LEVEL ESP_LOG_NONE
 #include "esp_log.h"
-#include "esp_timer.h"
+//#include "esp_timer.h"
 
 #include "myTaskConfig.h"
 #include "estadoSistema.h"
@@ -292,9 +292,9 @@ void tareaControlDeposito(void* pParametros)
     pControlDepositoParams.continuar = &continuar;
 
     /* DEBUG: TIEMPO DE EJECUCIÓN */
-    uint64_t startTime;
-    uint64_t endTime;
-    uint64_t executionTime;
+    //uint64_t startTime;
+    //uint64_t endTime;
+    //uint64_t executionTime;
 
     while( continuar )
     {
@@ -304,7 +304,7 @@ void tareaControlDeposito(void* pParametros)
         ESP_LOGD(pConfig->tag, "Numero de activaciones: %lu", pConfig->numActivaciones);
 
         /* DEBUG: TIEMPO DE EJECUCIÓN */
-        startTime = esp_timer_get_time();
+        //startTime = esp_timer_get_time();
 
         /* Comprueba el estado actual del sistema */
         if ( !paradaEmergenciaLeer(pEmergencia, &pControlDepositoParams.emergencia) ) { continuar = false; }
@@ -315,8 +315,8 @@ void tareaControlDeposito(void* pParametros)
         fsm_update (fsm_controlDeposito, (void*) &pControlDepositoParams);
 
         /* DEBUG: TIEMPO DE EJECUCIÓN */
-        endTime = esp_timer_get_time();
-        executionTime = endTime - startTime;
-        printf("Duración de tarea controlDeposito: %lld microsegundos\n", executionTime);
+        //endTime = esp_timer_get_time();
+        //executionTime = endTime - startTime;
+        //ESP_LOGD(pConfig->tag, "Duración de tarea: %lld microsegundos\n", executionTime);
     }
 }

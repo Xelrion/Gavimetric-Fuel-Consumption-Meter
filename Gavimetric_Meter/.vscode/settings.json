@@ -20,6 +20,8 @@
         "buffercircular.h": "c",
         "comandosconsola.h": "c",
         "freertos.h": "c",
-        "controldeposito.h": "c"
+        "controldeposito.h": "c",
+        "estadosistema.h": "c",
+        "mytaskconfig.h": "c"
     }
 }
