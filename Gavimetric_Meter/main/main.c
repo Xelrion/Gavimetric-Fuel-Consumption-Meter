@@ -35,6 +35,9 @@
 // Módulo de comunicación con el sistema remoto
 #include "comunicacionRemoto.h"
 
+// Módulo de gestión de interrupciones de emergencia
+#include "interrupcionEmergencia.h"
+
 // Constantes para la planificación de cada tarea
 // Nombre, periodo, tamaño de stack y prioridad
 
@@ -140,4 +143,9 @@ void app_main(void)
     xTaskCreate(tareaComandosConsola,   TSKCOMANDOSCONS_TAG,   TSKCOMANDOSCONS_STACK_WD,   &tskComandosConsola_info,   TSKCOMANDOSCONS_PRIORIDAD,    &tskComandosConsola);   tskComandosConsola_config.activa = 1;   // numTsk++;
     xTaskCreate(tareaComunicacionDisplay,   TSKCOMUNDISPLAY_TAG,   TSKCOMUNDISPLAY_STACK_WD,   &tskComunicacionDisplay_info,   TSKCOMUNDISPLAY_PRIORIDAD,    &tskComunicacionDisplay);   tskComunicacionDisplay_config.activa = 1;   // numTsk++;
     xTaskCreate(tareaComunicacionRemoto,   TSKCOMUNREMOTO_TAG,   TSKCOMUNREMOTO_STACK_WD,   &tskComunicacionRemoto_info,   TSKCOMUNREMOTO_PRIORIDAD,    &tskComunicacionRemoto);   tskComunicacionRemoto_config.activa = 1;   // numTsk++;
+
+    // Configura las interrupciones
+    configInterrupcionEmergencia(&paradaEmergencia);
+
+    vTaskDelay(10);
 }
